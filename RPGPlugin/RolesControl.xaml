@@ -1,0 +1,42 @@
+﻿<UserControl x:Class="Roles.RolesControl"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:Roles"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800">
+
+    <Grid>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" SharedSizeGroup="Labels"/>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="39.625" SharedSizeGroup="Buttons"/>
+            <ColumnDefinition Width="38.375"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TabControl Grid.Row="1" Grid.ColumnSpan="4">
+            <TabItem Header="Main">
+                <StackPanel/>
+            </TabItem>
+
+            <TabItem Header="Miner">
+                <!-- Treść dla zakładki Miner -->
+            </TabItem>
+
+            <TabItem Header="Hunter">
+                <!-- Treść dla zakładki Hunter -->
+            </TabItem>
+
+            <TabItem Header="Warrior">
+                <!-- Treść dla zakładki Warrior -->
+            </TabItem>
+        </TabControl>
+    </Grid>
+
+</UserControl>
