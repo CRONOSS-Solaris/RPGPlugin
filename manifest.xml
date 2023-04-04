@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<PluginManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>RPGPlugin</Name>
+  <Guid>c442fe93-2200-4dbe-bd78-a0a5a64d6860</Guid>
+  <Repository>None</Repository>
+  <Version>v1.0.0</Version>
+</PluginManifest>
