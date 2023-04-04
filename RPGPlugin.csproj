@@ -166,7 +166,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RPGPlugin\IRole.cs" />
+    <Compile Include="RPGPlugin\Interfaces\IRole.cs" />
     <Compile Include="RPGPlugin\Roles\Miner.cs" />
     <Compile Include="RPGPlugin\PlayerData.cs" />
     <Compile Include="RPGPlugin\Properties\AssemblyInfo.cs">
@@ -186,7 +186,7 @@
     <Compile Include="RPGPlugin\Roles.cs" />
     <Compile Include="RPGPlugin\RolesCommands.cs" />
     <Compile Include="RPGPlugin\RolesConfig.cs" />
-    <Compile Include="RPGPlugin\RolesControl.xaml.cs">
+    <Compile Include="RPGPlugin\Torch GUI\RolesControl.xaml.cs">
       <DependentUpon>RolesControl.xaml</DependentUpon>
     </Compile>
     <EmbeddedResource Include="RPGPlugin\Properties\Resources.resx">
@@ -208,7 +208,7 @@
     <Content Include="manifest.xml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="RPGPlugin\RolesControl.xaml">
+    <Page Include="RPGPlugin\Torch GUI\RolesControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
