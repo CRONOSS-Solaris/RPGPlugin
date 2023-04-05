@@ -23,19 +23,19 @@
         <TabControl Grid.Row="1" Grid.ColumnSpan="4">
             
             <TabItem Header="Main">
-                <Image Height="371" Source="/RPGPlugin;component/pngegg (1).png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
+                <Image Height="371" Source="/RPGPlugin;component/comingsoon.png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
             </TabItem>
 
             <TabItem Header="Miner">
-                <Image Height="371" Source="/RPGPlugin;component/pngegg (1).png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
+                <Image Height="371" Source="/RPGPlugin;component/comingsoon.png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
             </TabItem>
 
             <TabItem Header="Hunter">
-                <Image Height="371" Source="/RPGPlugin;component/pngegg (1).png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
+                <Image Height="371" Source="/RPGPlugin;component/comingsoon.png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
             </TabItem>
 
             <TabItem Header="Warrior">
-                <Image Height="371" Source="/RPGPlugin;component/pngegg (1).png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
+                <Image Height="371" Source="/RPGPlugin;component/comingsoon.png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
             </TabItem>
         </TabControl>
     </Grid>
