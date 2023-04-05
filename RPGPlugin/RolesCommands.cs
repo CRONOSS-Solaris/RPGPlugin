@@ -25,7 +25,7 @@ namespace Roles
             {
                 // save player's data
                 ulong steamId = player.SteamUserId;
-                string dataPath = Path.Combine(Plugin.StoragePath, "Roles", "Player Data");
+                string dataPath = Path.Combine(Plugin.StoragePath, "RPGPlugin", "Player Data");
                 string filePath = Path.Combine(dataPath, $"{steamId}.xml");
 
                 // create the player's data if it doesn't exist

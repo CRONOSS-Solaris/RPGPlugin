@@ -55,7 +55,7 @@ namespace Roles
 
         private void SetupConfig()
         {
-            string dataPath = Path.Combine(StoragePath, "Roles");
+            string dataPath = Path.Combine(StoragePath, "RPGPlugin");
             string playerdataPath = Path.Combine(dataPath, "Player Data");
 
             // create directories if they do not exist
@@ -63,7 +63,7 @@ namespace Roles
             Directory.CreateDirectory(playerdataPath);
 
             // set the config file path
-            string configFile = Path.Combine(StoragePath, "RolesConfig.xml");
+            string configFile = Path.Combine(StoragePath, "RPGPluginConfig.xml");
 
             try
             {

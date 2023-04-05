@@ -7,7 +7,7 @@ namespace Roles
 {
     public class RoleManager
     {
-        private const string DATA_DIRECTORY = "Roles/Player Data/";
+        private const string DATA_DIRECTORY = "RPGPlugin/Player Data/";
         private const string DATA_FILE_EXTENSION = ".xml";
 
         private readonly Dictionary<string, IRole> _roles = new Dictionary<string, IRole>();
