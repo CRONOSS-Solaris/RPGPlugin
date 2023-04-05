@@ -21,20 +21,21 @@
         </Grid.RowDefinitions>
 
         <TabControl Grid.Row="1" Grid.ColumnSpan="4">
+            
             <TabItem Header="Main">
-                <StackPanel/>
+                <Image Height="371" Source="/RPGPlugin;component/pngegg (1).png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
             </TabItem>
 
             <TabItem Header="Miner">
-                <!-- Treść dla zakładki Miner -->
+                <Image Height="371" Source="/RPGPlugin;component/pngegg (1).png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
             </TabItem>
 
             <TabItem Header="Hunter">
-                <!-- Treść dla zakładki Hunter -->
+                <Image Height="371" Source="/RPGPlugin;component/pngegg (1).png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
             </TabItem>
 
             <TabItem Header="Warrior">
-                <!-- Treść dla zakładki Warrior -->
+                <Image Height="371" Source="/RPGPlugin;component/pngegg (1).png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
             </TabItem>
         </TabControl>
     </Grid>
