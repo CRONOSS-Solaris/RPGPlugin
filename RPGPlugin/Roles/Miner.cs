@@ -39,7 +39,10 @@ namespace Roles
 
         public void AddExp(int amount, string typeId, string subtypeId)
         {
-            if (typeId == "MyObjectBuilder_Ore" && _oreExpValues.ContainsKey(subtypeId))
+            if (!_oreExpValues.ContainsKey(subtypeId))
+                return;
+
+            if (typeId == "MyObjectBuilder_Ore")
             {
                 amount *= _oreExpValues[subtypeId];
             }
