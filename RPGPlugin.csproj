@@ -206,8 +206,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Resource Include="pngegg %281%29.png" />
-    <Resource Include="6be9c39e0624744e484e61beafd9a13c.jpg" />
+    <Resource Include="comingsoon.png" />
     <Content Include="manifest.xml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
