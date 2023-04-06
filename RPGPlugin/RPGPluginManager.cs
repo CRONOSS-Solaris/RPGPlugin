@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 
-namespace Roles
+namespace RPGPlugin
 {
     public class RoleManager
     {

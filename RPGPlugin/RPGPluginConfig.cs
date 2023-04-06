@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Torch;
 
-namespace Roles
+namespace RPGPlugin
 {
     public class RPGPluginConfig : ViewModel
     {

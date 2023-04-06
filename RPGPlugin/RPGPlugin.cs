@@ -9,7 +9,7 @@ using Torch.API.Plugins;
 using Torch.API.Session;
 using Torch.Session;
 
-namespace Roles
+namespace RPGPlugin
 {
     public class Roles : TorchPluginBase, IWpfPlugin
     {

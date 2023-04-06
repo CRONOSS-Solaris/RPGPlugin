@@ -182,12 +182,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="RPGPlugin\RoleManager.cs" />
-    <Compile Include="RPGPlugin\Roles.cs" />
-    <Compile Include="RPGPlugin\RolesCommands.cs" />
-    <Compile Include="RPGPlugin\RolesConfig.cs" />
-    <Compile Include="RPGPlugin\Torch GUI\RolesControl.xaml.cs">
-      <DependentUpon>RolesControl.xaml</DependentUpon>
+    <Compile Include="RPGPlugin\RPGPluginManager.cs" />
+    <Compile Include="RPGPlugin\RPGPlugin.cs" />
+    <Compile Include="RPGPlugin\RPGPluginCommands.cs" />
+    <Compile Include="RPGPlugin\RPGPluginConfig.cs" />
+    <Compile Include="RPGPlugin\Torch GUI\RPGPluginControl.xaml.cs">
+      <DependentUpon>RPGPluginControl.xaml</DependentUpon>
     </Compile>
     <EmbeddedResource Include="RPGPlugin\Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -210,7 +210,7 @@
     <Content Include="manifest.xml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="RPGPlugin\Torch GUI\RolesControl.xaml">
+    <Page Include="RPGPlugin\Torch GUI\RPGPluginControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

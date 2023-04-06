@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace Roles
+namespace RPGPlugin
 {
     public partial class RolesControl : UserControl
     {

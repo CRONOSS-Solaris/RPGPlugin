@@ -4,7 +4,7 @@ using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game.ModAPI;
 
-namespace Roles
+namespace RPGPlugin
 {
     [Category("r")]
     public class RolesCommands : CommandModule
