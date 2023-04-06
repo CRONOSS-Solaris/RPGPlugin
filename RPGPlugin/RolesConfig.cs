@@ -3,7 +3,7 @@ using Torch;
 
 namespace Roles
 {
-    public class RolesConfig : ViewModel
+    public class RPGPluginConfig : ViewModel
     {
 
         private List<string> _RolesList = new List<string> { "Miner", "Hunter", "Warrior" };

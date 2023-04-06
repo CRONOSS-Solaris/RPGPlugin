@@ -19,8 +19,8 @@ namespace Roles
         private RolesControl _control;
         public UserControl GetControl() => _control ?? (_control = new RolesControl(this));
 
-        private Persistent<RolesConfig> _config;
-        public RolesConfig Config => _config?.Data;
+        private Persistent<RPGPluginConfig> _config;
+        public RPGPluginConfig Config => _config?.Data;
 
         public override void Init(ITorchBase torch)
         {
@@ -67,7 +67,7 @@ namespace Roles
 
             try
             {
-                _config = Persistent<RolesConfig>.Load(configFile);
+                _config = Persistent<RPGPluginConfig>.Load(configFile);
             }
             catch (Exception e)
             {
@@ -77,7 +77,7 @@ namespace Roles
             if (_config?.Data == null)
             {
                 Log.Info("Create Default Config, because none was found!");
-                _config = new Persistent<RolesConfig>(configFile, new RolesConfig());
+                _config = new Persistent<RPGPluginConfig>(configFile, new RPGPluginConfig());
                 _config.Save();
             }
         }

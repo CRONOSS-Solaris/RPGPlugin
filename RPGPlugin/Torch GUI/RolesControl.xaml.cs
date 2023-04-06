@@ -19,9 +19,5 @@ namespace Roles
             DataContext = plugin.Config;
         }
 
-        private void SaveButton_OnClick(object sender, RoutedEventArgs e)
-        {
-            Plugin.Save();
-        }
     }
 }
