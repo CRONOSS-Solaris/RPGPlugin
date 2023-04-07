@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Windows.Controls;
+using System.Xml.Serialization;
 using Torch;
 using Torch.API;
 using Torch.API.Managers;
@@ -79,6 +80,22 @@ namespace RPGPlugin
                 Log.Info("Create Default Config, because none was found!");
                 _config = new Persistent<RPGPluginConfig>(configFile, new RPGPluginConfig());
                 _config.Save();
+            }
+            else
+            {
+                try
+                {
+                    var xmlSerializer = new XmlSerializer(typeof(RPGPluginConfig));
+                    using (var streamReader = new StreamReader(configFile))
+                    {
+                        var configData = (RPGPluginConfig)xmlSerializer.Deserialize(streamReader);
+                        _config = new Persistent<RPGPluginConfig>(configFile, configData);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Warn(e);
+                }
             }
         }
 
