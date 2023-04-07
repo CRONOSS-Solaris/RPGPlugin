@@ -10,9 +10,7 @@ namespace RPGPlugin
     public class RolesCommands : CommandModule
     {
         public Roles Plugin => (Roles)Context.Plugin;
-         
-        public object Level { get; private set; }
-        public object ExpRequiredForLevels { get; private set; }
+
 
         [Command("setrole", "Set your role")]
         [Permission(MyPromoteLevel.None)]
@@ -77,15 +75,15 @@ namespace RPGPlugin
             Context.Respond(message);
         }
 
-        [Command("stats", "Displays current level and exp needed for next level.")]
-        [Permission(MyPromoteLevel.None)]
-        public void Stats()
-        {
-            var message = "Informations:\n";
-            message += $"Current level: {Level}.\n";
-            message += $"Exp needed for next level: {ExpRequiredForLevels}.\n";
+        //[Command("stats", "Displays current level and exp needed for next level.")]
+        //[Permission(MyPromoteLevel.None)]
+        //public void Stats()
+        //{
+            //var message = "Informations:\n";
+            //message += $"Current level: .\n";
+            //message += $"Exp needed for next level: .\n";
 
-            Context.Respond(message);
-        }
+            //Context.Respond(message);
+        //}
     }
 }
