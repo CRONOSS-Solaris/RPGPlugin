@@ -6,21 +6,21 @@ The RPG plugin introduces a system of roles, levels and experience for players i
 
 ## 2. Available functions and commands
 
-**!r setrole <roleName>:** Sets the selected role for the player.
-**!r roles:** Displays a list of available roles and their descriptions.
-**!r stats:** Displays the player's current level and the amount of experience needed to reach the next level.
+- **!r setrole <roleName>:** Sets the selected role for the player.
+- **!r roles:** Displays a list of available roles and their descriptions.
+- **!r stats:** Displays the player's current level and the amount of experience needed to reach the next level.
 
 ## 3. Expected plugin behaviour
 
-The plugin should correctly change a player's role after using the **setrole** command.
-The plugin should display a list of available roles and their descriptions after using the **roles** command.
-The plugin should display the player's current level and the amount of experience needed to reach the next level after using the **stats** command.
+- The plugin should correctly change a player's role after using the **setrole** command.
+- The plugin should display a list of available roles and their descriptions after using the **roles** command.
+- The plugin should display the player's current level and the amount of experience needed to reach the next level after using the **stats** command.
 
 ## 4. Test scenarios
 
-**Normal use cases:** Check that all commands work correctly for typical parameter values.
-**Edge cases:** Try to use commands with incorrect parameters, such as a non-existent role.
-**Error cases:** Try to use commands without the required parameters or call commands in the wrong order.
+- **Normal use cases:** Check that all commands work correctly for typical parameter values.
+- **Edge cases:** Try to use commands with incorrect parameters, such as a non-existent role.
+- **Error cases:** Try to use commands without the required parameters or call commands in the wrong order.
 
 ## 5. How to report errors and suggestions
 
