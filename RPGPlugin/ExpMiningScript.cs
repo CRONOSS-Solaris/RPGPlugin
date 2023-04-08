@@ -12,6 +12,14 @@ using VRageMath;
 public class ExpMiningScript : MySessionComponentBase
 {
     private bool _isInitialized;
+    private MemoryStream _stream;
+    private BinaryWriter _writer;
+
+    public ExpMiningScript()
+    {
+        _stream = new MemoryStream();
+        _writer = new BinaryWriter(_stream, Encoding.UTF8);
+    }
 
     public override void UpdateBeforeSimulation()
     {
@@ -32,6 +40,9 @@ public class ExpMiningScript : MySessionComponentBase
     protected override void UnloadData()
     {
         MyAPIGateway.Entities.OnEntityAdd -= OnEntityAdd;
+
+        _writer.Dispose();
+        _stream.Dispose();
     }
 
     private void OnEntityAdd(IMyEntity entity)
@@ -52,28 +63,22 @@ public class ExpMiningScript : MySessionComponentBase
                 double maxDistanceSquared = 100; // Ustal maksymalny dystans, na jakim gracz może zbierać surowce (np. 10 metrów)
                 if (distanceSquared <= maxDistanceSquared)
                 {
-                    SendExpMiningData(localPlayer.SteamUserId, inventoryItem.Content.TypeId.ToString(), inventoryItem.Content.SubtypeName, (int)inventoryItem.Amount);
+                    SendExpMiningData(inventoryItem.Content.TypeId.ToString(), inventoryItem.Content.SubtypeName, (int)inventoryItem.Amount);
                 }
             }
         }
     }
 
-    private void SendExpMiningData(ulong steamId, string typeId, string subtypeId, int amount)
+    private void SendExpMiningData(string typeId, string subtypeId, int amount)
     {
         try
         {
-            using (var stream = new MemoryStream())
-            {
-                using (var writer = new BinaryWriter(stream, Encoding.UTF8))
-                {
-                    writer.Write(steamId);
-                    writer.Write(typeId);
-                    writer.Write(subtypeId);
-                    writer.Write(amount);
+            _stream.Position = 0;
+            _writer.Write(typeId);
+            _writer.Write(subtypeId);
+            _writer.Write(amount);
 
-                    MyAPIGateway.Multiplayer.SendMessageToServer(Roles.ExpMiningHandlerId, stream.ToArray());
-                }
-            }
+            MyAPIGateway.Multiplayer.SendMessageToServer(Roles.ExpMiningHandlerId, _stream.ToArray());
         }
         catch (Exception e)
         {
@@ -81,5 +86,3 @@ public class ExpMiningScript : MySessionComponentBase
         }
     }
 }
-
-
