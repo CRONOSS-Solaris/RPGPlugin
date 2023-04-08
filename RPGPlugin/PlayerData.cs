@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Xml.Serialization;
 
 public class PlayerData
@@ -6,26 +7,24 @@ public class PlayerData
     [XmlAttribute("SteamId")]
     public ulong SteamId { get; set; }
 
-    [XmlElement("SelectedRole")]
-    public string SelectedRole { get; set; }
-
-    // Dodaj właściwości przechowujące doświadczenie i poziom.
-    [XmlElement("Exp")]
-    public int Exp { get; set; }
-
     [XmlElement("Level")]
     public int Level { get; set; }
 
-    // Domyślny konstruktor.
-    public PlayerData() { }
+    [XmlElement("Exp")]
+    public int Exp { get; set; }
 
-    // Konstruktor z wartościami początkowymi dla Level i Exp.
+    [XmlElement("SelectedRole")]
+    public string SelectedRole { get; set; }
+
+    public List<int> ExpPerLevel { get; set; }
+
     public PlayerData(ulong steamId)
     {
         SteamId = steamId;
-        SelectedRole = null;
         Level = 1;
         Exp = 0;
+        SelectedRole = null;
+        ExpPerLevel = new List<int> { 0, 100, 200, 400, 700, 1200 }; // Przykładowe wartości, można dostosować według potrzeb
     }
 
     public void Save(string filePath)
@@ -37,3 +36,5 @@ public class PlayerData
         }
     }
 }
+
+

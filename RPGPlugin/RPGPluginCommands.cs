@@ -98,7 +98,7 @@ namespace RPGPlugin
                 }
             }
 
-            int expNeededForNextLevel = (playerData.Level + 1) * 100; // Przykładowa formuła do obliczenia wymaganego doświadczenia.
+            int expNeededForNextLevel = playerData.ExpPerLevel[playerData.Level]; // Obliczanie wymaganego doświadczenia na podstawie listy
 
             var message = "Informations:\n";
             message += $"Current level: {playerData.Level}.\n";
@@ -106,6 +106,7 @@ namespace RPGPlugin
 
             Context.Respond(message);
         }
+
 
     }
 }
