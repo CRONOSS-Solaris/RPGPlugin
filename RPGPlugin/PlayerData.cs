@@ -8,18 +8,24 @@ public class PlayerData
 
     [XmlElement("SelectedRole")]
     public string SelectedRole { get; set; }
-     
+
+    // Dodaj właściwości przechowujące doświadczenie i poziom.
     [XmlElement("Exp")]
     public int Exp { get; set; }
 
     [XmlElement("Level")]
     public int Level { get; set; }
 
+    // Domyślny konstruktor.
     public PlayerData() { }
 
+    // Konstruktor z wartościami początkowymi dla Level i Exp.
     public PlayerData(ulong steamId)
     {
         SteamId = steamId;
+        SelectedRole = null;
+        Level = 1;
+        Exp = 0;
     }
 
     public void Save(string filePath)
@@ -30,5 +36,4 @@ public class PlayerData
             serializer.Serialize(writer, this);
         }
     }
-
 }

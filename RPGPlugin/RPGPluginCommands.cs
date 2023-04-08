@@ -75,15 +75,37 @@ namespace RPGPlugin
             Context.Respond(message);
         }
 
-        //[Command("stats", "Displays current level and exp needed for next level.")]
-        //[Permission(MyPromoteLevel.None)]
-        //public void Stats()
-        //{
-            //var message = "Informations:\n";
-            //message += $"Current level: .\n";
-            //message += $"Exp needed for next level: .\n";
+        [Command("stats", "Displays current level and exp needed for next level.")]
+        [Permission(MyPromoteLevel.None)]
+        public void Stats()
+        {
+            var player = Context.Player;
+            ulong steamId = player.SteamUserId;
+            string dataPath = Path.Combine(Plugin.StoragePath, "RPGPlugin", "Player Data");
+            string filePath = Path.Combine(dataPath, $"{steamId}.xml");
 
-            //Context.Respond(message);
-        //}
+            var serializer = new XmlSerializer(typeof(PlayerData));
+            PlayerData playerData;
+            if (!File.Exists(filePath))
+            {
+                playerData = new PlayerData(steamId);
+            }
+            else
+            {
+                using (var reader = new StreamReader(filePath))
+                {
+                    playerData = (PlayerData)serializer.Deserialize(reader);
+                }
+            }
+
+            int expNeededForNextLevel = (playerData.Level + 1) * 100; // Przykładowa formuła do obliczenia wymaganego doświadczenia.
+
+            var message = "Informations:\n";
+            message += $"Current level: {playerData.Level}.\n";
+            message += $"Exp needed for next level: {expNeededForNextLevel - playerData.Exp}.\n";
+
+            Context.Respond(message);
+        }
+
     }
 }
