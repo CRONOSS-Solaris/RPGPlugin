@@ -166,6 +166,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RPGPlugin\ExpMiningScript.cs" />
     <Compile Include="RPGPlugin\Interfaces\IRole.cs" />
     <Compile Include="RPGPlugin\Roles\Miner.cs" />
     <Compile Include="RPGPlugin\PlayerData.cs" />

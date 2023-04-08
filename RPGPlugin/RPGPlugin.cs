@@ -1,6 +1,8 @@
 ﻿using NLog;
+using Sandbox.ModAPI;
 using System;
 using System.IO;
+using System.Text;
 using System.Windows.Controls;
 using System.Xml.Serialization;
 using Torch;
@@ -17,6 +19,8 @@ namespace RPGPlugin
          
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+        public const ushort ExpMiningHandlerId = 54546; // Wybierz unikalne ID, które nie koliduje z innymi modyfikacjami
+
         private RolesControl _control;
         public UserControl GetControl() => _control ?? (_control = new RolesControl(this));
 
@@ -26,6 +30,9 @@ namespace RPGPlugin
         public override void Init(ITorchBase torch)
         {
             base.Init(torch);
+            
+            MyAPIGateway.Multiplayer.RegisterMessageHandler(ExpMiningHandlerId, ExpMiningHandler);
+
 
             SetupConfig();
 
@@ -53,6 +60,35 @@ namespace RPGPlugin
                     break;
             }
         }
+
+        private void ExpMiningHandler(byte[] data)
+        {
+            try
+            {
+                using (var stream = new MemoryStream(data))
+                {
+                    using (var reader = new BinaryReader(stream, Encoding.UTF8))
+                    {
+                        ulong steamId = reader.ReadUInt64();
+                        string typeId = reader.ReadString();
+                        string subtypeId = reader.ReadString();
+                        int amount = reader.ReadInt32();
+
+                        var roleManager = new RoleManager();
+                        var role = roleManager.GetRole(steamId);
+                        if (role != null)
+                        {
+                            role.AddExp(amount, typeId, subtypeId);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Warn(e);
+            }
+        }
+
 
         private void SetupConfig()
         {
