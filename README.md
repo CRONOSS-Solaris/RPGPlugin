@@ -1,8 +1,5 @@
 # RPG Plugin - Information for the tester.
 
-
-
-
 ## 1. Plugin Objective 
 
 The RPG plugin introduces a system of roles, levels and experience for players in the game. Players can choose one of the available roles, gain experience, and advance in levels.*
