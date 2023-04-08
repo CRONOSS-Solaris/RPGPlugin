@@ -199,6 +199,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Include="RPGPlugin\README.md" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include=".gitignore" />
