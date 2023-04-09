@@ -78,7 +78,8 @@ public class ExpMiningScript : MySessionComponentBase
             _writer.Write(subtypeId);
             _writer.Write(amount);
 
-            MyAPIGateway.Multiplayer.SendMessageToServer(Roles.ExpMiningHandlerId, _stream.ToArray());
+            ushort handlerId = RPGPlugin.Roles.Instance.Config.ExpMiningHandlerId;
+
         }
         catch (Exception e)
         {

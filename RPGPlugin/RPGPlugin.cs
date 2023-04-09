@@ -19,7 +19,8 @@ namespace RPGPlugin
          
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public const ushort ExpMiningHandlerId = 54546; // Wybierz unikalne ID, które nie koliduje z innymi modyfikacjami
+        public static Roles Instance { get; private set; }
+
 
         private RolesControl _control;
         public UserControl GetControl() => _control ?? (_control = new RolesControl(this));
@@ -30,11 +31,11 @@ namespace RPGPlugin
         public override void Init(ITorchBase torch)
         {
             base.Init(torch);
-            
-            MyAPIGateway.Multiplayer.RegisterMessageHandler(ExpMiningHandlerId, ExpMiningHandler);
+            Instance = this;
 
 
             SetupConfig();
+
 
             var sessionManager = Torch.Managers.GetManager<TorchSessionManager>();
             if (sessionManager != null)
@@ -102,38 +103,54 @@ namespace RPGPlugin
             // set the config file path
             string configFile = Path.Combine(StoragePath, "RPGPluginConfig.xml");
 
-            try
+            if (!File.Exists(configFile))
             {
-                _config = Persistent<RPGPluginConfig>.Load(configFile);
-            }
-            catch (Exception e)
-            {
-                Log.Warn(e);
-            }
+                // Utwórz domyślny obiekt konfiguracji
+                var defaultConfig = new RPGPluginConfig
+                {
+                    ExpMiningHandlerId = 54546 // Ustaw domyślną wartość ExpMiningHandlerId
+                                               // Ustaw inne domyślne wartości, jeśli są potrzebne
+                };
 
-            if (_config?.Data == null)
-            {
-                Log.Info("Create Default Config, because none was found!");
-                _config = new Persistent<RPGPluginConfig>(configFile, new RPGPluginConfig());
+                _config = new Persistent<RPGPluginConfig>(configFile, defaultConfig);
                 _config.Save();
             }
             else
             {
                 try
                 {
-                    var xmlSerializer = new XmlSerializer(typeof(RPGPluginConfig));
-                    using (var streamReader = new StreamReader(configFile))
-                    {
-                        var configData = (RPGPluginConfig)xmlSerializer.Deserialize(streamReader);
-                        _config = new Persistent<RPGPluginConfig>(configFile, configData);
-                    }
+                    _config = Persistent<RPGPluginConfig>.Load(configFile);
                 }
                 catch (Exception e)
                 {
                     Log.Warn(e);
                 }
+
+                if (_config?.Data == null)
+                {
+                    Log.Info("Create Default Config, because none was found!");
+                    _config = new Persistent<RPGPluginConfig>(configFile, new RPGPluginConfig());
+                    _config.Save();
+                }
+                else
+                {
+                    try
+                    {
+                        var xmlSerializer = new XmlSerializer(typeof(RPGPluginConfig));
+                        using (var streamReader = new StreamReader(configFile))
+                        {
+                            var configData = (RPGPluginConfig)xmlSerializer.Deserialize(streamReader);
+                            _config = new Persistent<RPGPluginConfig>(configFile, configData);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Warn(e);
+                    }
+                }
             }
         }
+
 
 
         public void Save()
