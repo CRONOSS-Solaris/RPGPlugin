@@ -18,10 +18,8 @@ namespace RPGPlugin
         public Miner()
         {
             _expRequiredForLevels = new int[MaxLevel];
-            for (int i = 0; i < MaxLevel; i++)
-            {
-                _expRequiredForLevels[i] = 100 * (i + 1); // domyślnie wymagane doświadczenie do zdobycia kolejnego poziomu
-            }
+            _expRequiredForLevels = new int[] { 0, 100, 300, 400, 500, 600, 700, 800, 900, 1000 };
+
         }
 
         private Dictionary<string, int> _oreExpValues = new Dictionary<string, int>()

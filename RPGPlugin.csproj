@@ -167,6 +167,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="RPGPlugin\Behavior\ExpMiningScript.cs" />
+    <Compile Include="RPGPlugin\Config\MinerConfig.cs" />
     <Compile Include="RPGPlugin\Interfaces\IRole.cs" />
     <Compile Include="RPGPlugin\Roles\Miner.cs" />
     <Compile Include="RPGPlugin\PlayerData.cs" />
@@ -186,7 +187,7 @@
     <Compile Include="RPGPlugin\RPGPluginManager.cs" />
     <Compile Include="RPGPlugin\RPGPlugin.cs" />
     <Compile Include="RPGPlugin\RPGPluginCommands.cs" />
-    <Compile Include="RPGPlugin\RPGPluginConfig.cs" />
+    <Compile Include="RPGPlugin\Config\RPGPluginConfig.cs" />
     <Compile Include="RPGPlugin\Torch GUI\RPGPluginControl.xaml.cs">
       <DependentUpon>RPGPluginControl.xaml</DependentUpon>
     </Compile>

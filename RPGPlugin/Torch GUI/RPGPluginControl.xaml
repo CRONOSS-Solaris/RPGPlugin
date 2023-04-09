@@ -7,8 +7,8 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800">
 
-    <Grid>
 
+    <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" SharedSizeGroup="Labels"/>
             <ColumnDefinition/>
@@ -21,9 +21,21 @@
         </Grid.RowDefinitions>
 
         <TabControl Grid.Row="1" Grid.ColumnSpan="4">
-            
             <TabItem Header="Main">
-                <Image Height="371" Source="/RPGPlugin;component/comingsoon.png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Row="0" Grid.Column="0" Content="ExpMiningHandlerId:" Margin="5,1,6,9" />
+                    <TextBox Text="{Binding ExpMiningHandlerId, UpdateSourceTrigger=PropertyChanged}" Margin="0,31,0,369" Height="22" HorizontalAlignment="Center" Width="120" TextAlignment="Center" Grid.RowSpan="2" />
+                    <Label Content="1 to 65535" Margin="40,16,42,386" FontSize="8" Grid.RowSpan="2" Background="{x:Null}" />
+                </Grid>
             </TabItem>
 
             <TabItem Header="Miner">
@@ -39,5 +51,4 @@
             </TabItem>
         </TabControl>
     </Grid>
-
 </UserControl>
