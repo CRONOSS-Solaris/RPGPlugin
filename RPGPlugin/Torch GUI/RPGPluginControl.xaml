@@ -19,7 +19,6 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-
         <TabControl Grid.Row="1" Grid.ColumnSpan="4">
             <TabItem Header="Main">
                 <Grid>
@@ -29,12 +28,15 @@
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="296*"/>
+                        <ColumnDefinition Width="35*"/>
                     </Grid.ColumnDefinitions>
 
                     <Label Grid.Row="0" Grid.Column="0" Content="ExpMiningHandlerId:" Margin="5,1,6,9" />
                     <TextBox Text="{Binding ExpMiningHandlerId, UpdateSourceTrigger=PropertyChanged}" Margin="0,31,0,369" Height="22" HorizontalAlignment="Center" Width="120" TextAlignment="Center" Grid.RowSpan="2" />
                     <Label Content="1 to 65535" Margin="40,16,42,386" FontSize="8" Grid.RowSpan="2" Background="{x:Null}" />
+
+                    <Button Content="DONATE" Margin="0,1,0,0" Background="Green" HorizontalAlignment="Right" VerticalAlignment="Top" Click="Donate_Click" Grid.Column="2" Grid.ColumnSpan="2" Grid.RowSpan="2" Height="21" Width="56" BorderBrush="#FF309C00" BorderThickness="0,0,0,0" Foreground="White" FontFamily="Source Sans Pro Black"/>
                 </Grid>
             </TabItem>
 

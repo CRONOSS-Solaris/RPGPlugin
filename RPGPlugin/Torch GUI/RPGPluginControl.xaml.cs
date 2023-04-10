@@ -19,5 +19,10 @@ namespace RPGPlugin
             DataContext = plugin.Config;
         }
 
+        public void Donate_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://www.paypal.com/donate/?hosted_button_id=HCV9695KQDMFN");
+        }
+
     }
 }

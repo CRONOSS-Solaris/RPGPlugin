@@ -18,6 +18,10 @@ public class PlayerData
 
     public List<int> ExpPerLevel { get; set; }
 
+    public PlayerData()
+    {
+    }
+
     public PlayerData(ulong steamId)
     {
         SteamId = steamId;
@@ -36,5 +40,3 @@ public class PlayerData
         }
     }
 }
-
-
