@@ -1,4 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Xml.Serialization;
 using Torch.Commands;
 using Torch.Commands.Permissions;
@@ -11,7 +15,6 @@ namespace RPGPlugin
     {
         public Roles Plugin => (Roles)Context.Plugin;
 
-
         [Command("setrole", "Set your role")]
         [Permission(MyPromoteLevel.None)]
         public void SetRole(string roleName)
@@ -19,94 +22,70 @@ namespace RPGPlugin
             var player = Context.Player;
             var config = Plugin.Config;
 
-            if (config.RolesList.Contains(roleName))
+            // Get player Manager
+            for (int index = Roles.PlayerManagers.Count - 1; index >= 0; index--)
             {
-                // save player's data
-                ulong steamId = player.SteamUserId;
-                string dataPath = Path.Combine(Plugin.StoragePath, "RPGPlugin", "Player Data");
-                string filePath = Path.Combine(dataPath, $"{steamId}.xml");
+                if (Roles.PlayerManagers[index].PlayerData.SteamId != Context.Player.SteamUserId) continue;
+                
+                RoleManager manager = Roles.PlayerManagers[index];
+                switch (roleName.ToLower()) // No need for case sensitivity.
+                {
+                    case "norole":
+                        manager.PlayerData.SelectedRole = RoleManager.FromRoles.NoRole;
+                        manager.SavePlayerData();
+                        Context.Respond("Your role has been updated to [No Role]");
+                        break;
 
-                // create the player's data if it doesn't exist
-                var serializer = new XmlSerializer(typeof(PlayerData));
-                PlayerData playerData;
-                if (!File.Exists(filePath))
-                {
-                    playerData = new PlayerData(steamId);
-                }
-                else
-                {
-                    using (var reader = new StreamReader(filePath))
-                    {
-                        playerData = (PlayerData)serializer.Deserialize(reader);
-                    }
-                }
+                    case "miner":
+                        manager.PlayerData.SelectedRole = RoleManager.FromRoles.Miner;
+                        manager.SavePlayerData();
+                        Context.Respond("Your role has been updated to [Miner]");
+                        break;
 
-                // set the selected role and save the player's data
-                if (playerData.SelectedRole == null)
-                {
-                    playerData.SelectedRole = roleName;
-                    using (var writer = new StreamWriter(filePath))
-                    {
-                        serializer.Serialize(writer, playerData);
-                    }
-                    Context.Respond($"Role set to {roleName} for {player.DisplayName}.");
+                    case "warrior":
+                        manager.PlayerData.SelectedRole = RoleManager.FromRoles.Warrior;
+                        manager.SavePlayerData();
+                        Context.Respond("Your role has been updated to [Warrior]");
+                        break;
+
+                    default:
+                        Context.Respond("No role with that name found, check your spelling and try again.");
+                        break;
                 }
-                else
-                {
-                    Context.Respond($"{player.DisplayName}, you can only set your role once.");
-                }
-            }
-            else
-            {
-                Context.Respond($"Invalid role {roleName}.");
             }
         }
-
 
         [Command("roles", "Displays the list of available roles and their descriptions.")]
         [Permission(MyPromoteLevel.None)]
         public void ListRoles()
         {
-            var message = "Available roles:\n";
-            message += "Miner - This role allows you to mine and gather resources more efficiently.\n";
-            message += "Hunter - This role increases your damage against animals and improves your tracking abilities.\n";
-            message += "Warrior - This role increases your damage against other players and gives you access to better weapons.\n";
+            StringBuilder reply = new StringBuilder();
+            reply.AppendLine("Available roles:");
+            reply.AppendLine("Miner - This role allows you to mine and gather resources more efficiently.");
+            reply.AppendLine("Hunter - This role increases your damage against animals and improves your tracking abilities.");
+            reply.AppendLine("Warrior - This role increases your damage against other players and gives you access to better weapons.");
 
-            Context.Respond(message);
+            Context.Respond(reply.ToString());
         }
 
         [Command("stats", "Displays current level and exp needed for next level.")]
         [Permission(MyPromoteLevel.None)]
         public void Stats()
         {
-            var player = Context.Player;
-            ulong steamId = player.SteamUserId;
-            string dataPath = Path.Combine(Plugin.StoragePath, "RPGPlugin", "Player Data");
-            string filePath = Path.Combine(dataPath, $"{steamId}.xml");
-
-            var serializer = new XmlSerializer(typeof(PlayerData));
-            PlayerData playerData;
-            if (!File.Exists(filePath))
+            for (int index = Roles.PlayerManagers.Count - 1; index >= 0; index--)
             {
-                playerData = new PlayerData(steamId);
+                if (Roles.PlayerManagers[index].PlayerData.SteamId != Context.Player.SteamUserId) continue;
+                RoleManager manager = Roles.PlayerManagers[index];
+                
+                int expNeededForNextLevel = manager.PlayerData.ExpPerLevel[manager.PlayerData.Level]; // Obliczanie wymaganego doświadczenia na podstawie listy
+
+                StringBuilder reply = new StringBuilder();
+                reply.AppendLine("Information:");
+                reply.AppendLine($"Current level: {manager.PlayerData.Level}.");
+                reply.AppendLine($"Exp needed for next level: {expNeededForNextLevel - manager.PlayerData.Exp}.");
+
+                Context.Respond(reply.ToString());
             }
-            else
-            {
-                using (var reader = new StreamReader(filePath))
-                {
-                    playerData = (PlayerData)serializer.Deserialize(reader);
-                }
-            }
-
-            int expNeededForNextLevel = playerData.ExpPerLevel[playerData.Level]; // Obliczanie wymaganego doświadczenia na podstawie listy
-
-            var message = "Informations:\n";
-            message += $"Current level: {playerData.Level}.\n";
-            message += $"Exp needed for next level: {expNeededForNextLevel - playerData.Exp}.\n";
-
-            Context.Respond(message);
         }
-
-
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
+using Sandbox.Game.World;
 
 namespace RPGPlugin
 {
@@ -9,47 +9,25 @@ namespace RPGPlugin
     {
         private const string DATA_DIRECTORY = "RPGPlugin/Player Data/";
         private const string DATA_FILE_EXTENSION = ".xml";
+        public PlayerData PlayerData = null;
 
-        private readonly Dictionary<string, IRole> _roles = new Dictionary<string, IRole>();
-         
-        public RoleManager()
+        public enum FromRoles {NoRole, Miner, Warrior}
+
+        public RoleManager() { }
+
+        public bool SetRole(ulong steamId, FromRoles role)
         {
-            // dodajemy dostępne role
-            AddRole(new Miner());
-            // dodaj kolejne role tutaj, np. AddRole(new Warrior());
+            PlayerData playerData = LoadPlayerData(steamId);
+            if (playerData == null) return false;
+            
+            playerData.SelectedRole = role;
+            SavePlayerData();
+            return true;
         }
 
-        public void AddRole(IRole role)
+        public FromRoles GetRole(ulong steamId)
         {
-            _roles.Add(role.GetType().Name, role);
-        }
-
-        public bool SetRole(ulong steamId, string roleName)
-        {
-            if (!_roles.ContainsKey(roleName))
-            {
-                return false; // jeśli rola nie istnieje, nie ustawiamy jej dla gracza
-            }
-
-            var playerData = LoadPlayerData(steamId);
-            if (playerData != null)
-            {
-                playerData.SelectedRole = roleName;
-                SavePlayerData(playerData);
-                return true;
-            }
-            return false;
-        }
-
-        public IRole GetRole(ulong steamId)
-        {
-            var playerData = LoadPlayerData(steamId);
-            if (playerData == null || !_roles.ContainsKey(playerData.SelectedRole))
-            {
-                return null;
-            }
-
-            return _roles[playerData.SelectedRole];
+            return PlayerData.SelectedRole;
         }
 
         private PlayerData LoadPlayerData(ulong steamId)
@@ -59,7 +37,11 @@ namespace RPGPlugin
 
             if (!File.Exists(filePath))
             {
-                return null;
+                // return null;  Instead of returning null, create a new dataset.  They are a new player maybe.
+                PlayerData newPlayer = new PlayerData(steamId);
+                MySession.Static.Players.TryGetPlayerBySteamId(steamId, out MyPlayer playerData);
+                newPlayer.PlayerID = playerData.Identity.IdentityId;
+                return newPlayer;
             }
 
             try
@@ -78,9 +60,14 @@ namespace RPGPlugin
             }
         }
 
-        private void SavePlayerData(PlayerData playerData)
+        public void SavePlayerData()
         {
-            string fileName = playerData.SteamId + DATA_FILE_EXTENSION;
+            if (PlayerData == null)
+            {
+                // This should never be null.  If it is, something went wacko.  Good to have it though!
+                return;
+            }
+            string fileName = PlayerData.SteamId + DATA_FILE_EXTENSION;
             string filePath = Path.Combine(DATA_DIRECTORY, fileName);
 
             try
@@ -89,7 +76,7 @@ namespace RPGPlugin
                 using (var writer = new StreamWriter(filePath))
                 {
                     var serializer = new XmlSerializer(typeof(PlayerData));
-                    serializer.Serialize(writer, playerData);
+                    serializer.Serialize(writer, PlayerData);
                 }
             }
             catch (Exception e)

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RPGPlugin
 {
-    public class Miner : IRole
+    public class Miner
     {
         private readonly int[] _expRequiredForLevels;
          
