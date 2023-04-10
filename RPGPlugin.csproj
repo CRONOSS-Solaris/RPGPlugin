@@ -170,7 +170,7 @@
     <Compile Include="RPGPlugin\Config\MinerConfig.cs" />
     <Compile Include="RPGPlugin\Interfaces\IRole.cs" />
     <Compile Include="RPGPlugin\Roles\Miner.cs" />
-    <Compile Include="RPGPlugin\PlayerData.cs" />
+    <Compile Include="RPGPlugin\Config\PlayerData.cs" />
     <Compile Include="RPGPlugin\Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
