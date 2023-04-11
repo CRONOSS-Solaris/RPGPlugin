@@ -13,6 +13,6 @@ namespace RPGPlugin
 
         public ushort ExpMiningHandlerId { get => _expMiningHandlerId; set => SetValue(ref _expMiningHandlerId, value); }
 
-        public ObservableCollection<string> MinercustomSubTypes { get => _minerCustomSubTypes; set => SetValue(ref _minerCustomSubTypes, value); }
+        public ObservableCollection<string> MinerCustomSubTypes { get => _minerCustomSubTypes; set => SetValue(ref _minerCustomSubTypes, value); }
     }
 }

@@ -2,11 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Timers;
 using System.Windows.Controls;
 using System.Xml.Serialization;
-using NLog.Fluent;
 using RPGPlugin.PointManagementSystem;
+using RPGPlugin.Utils;
 using Sandbox.Game;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.World;
@@ -21,12 +22,14 @@ namespace RPGPlugin
 {
     public class Roles : TorchPluginBase, IWpfPlugin
     {
-         
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         public static Dictionary<long, PlayerManager> PlayerManagers = new Dictionary<long, PlayerManager>();
         private static Timer AutoSaver = new Timer();
         public static PointManager PointsManager = new PointManager();
         private static Timer DelayStart = new Timer();
+        public static object _FILELOCK = new object();
+        public static FileManager PlayerFile = new FileManager();
+        private bool DelayFinished = false;
 
         // Instead of writing to their player data file every tick they mine, track and save
         // all the data periodically.
@@ -45,7 +48,7 @@ namespace RPGPlugin
             SetupConfig();
             
             // This is how often all online players data will be saved automatically
-            AutoSaver.Interval = TimeSpan.FromMinutes(5).TotalMilliseconds;  
+            AutoSaver.Interval = TimeSpan.FromMinutes(1).TotalMilliseconds;  
 
             var sessionManager = Torch.Managers.GetManager<TorchSessionManager>();
             if (sessionManager != null)
@@ -62,7 +65,7 @@ namespace RPGPlugin
             {
                 case TorchSessionState.Loaded:
                     Log.Info("Session Loaded!");
-                    DelayStart.Interval = TimeSpan.FromMinutes(2).TotalMilliseconds;
+                    DelayStart.Interval = TimeSpan.FromSeconds(30).TotalMilliseconds;
                     DelayStart.Elapsed += DelayStartActivate;
                     DelayStart.Start();
                     Log.Info("Delay Start Timer Active!"); // DEBUG
@@ -94,12 +97,14 @@ namespace RPGPlugin
             MyVisualScriptLogicProvider.PlayerDisconnected += PlayerDisconnected;
             MyVisualScriptLogicProvider.ShipDrillCollected += PointsManager.ShipDrillCollected;
             // Not the connect listeners are active, we can pick up the current logged in players and set them up.
-            ICollection<MyPlayer> onlinePlayers = Sync.Players.GetOnlinePlayers();
+            List<MyPlayer> onlinePlayers = Sync.Players.GetOnlinePlayers().ToList();
             foreach (MyPlayer player in onlinePlayers)
             {
                 LoadPlayerData(player.Identity.IdentityId);
                 Log.Info("Role Data Active For " + player.Identity.DisplayName); // DEBUG
             }
+
+            DelayFinished = true;
             onlinePlayers.Clear();
             AutoSaver.Start();
         }
@@ -116,12 +121,12 @@ namespace RPGPlugin
             PlayerManagers.Remove(playerId);
         }
 
-        private void SaveAllPlayersForShutDown()
+        private async void SaveAllPlayersForShutDown()
         {
             foreach (KeyValuePair<long,PlayerManager> manager in PlayerManagers)
             {
-                manager.Value.SavePlayerData();
-                Log.Info("Roles Tracking Finishe For " + manager.Value.PlayerData.PlayerID);
+                await manager.Value.SavePlayerData();
+                Log.Info("Roles Tracking Finished For " + manager.Value._PlayerData.PlayerID);
             }
             PlayerManagers.Clear();
         }
@@ -129,19 +134,19 @@ namespace RPGPlugin
         private void LoadPlayerData(long playerId)
         {
             ulong SteamID = GetPlayerSteamID(playerId);
-            PlayerManager roleManager = new PlayerManager(SteamID);
+            PlayerManager roleManager = new PlayerManager();
             roleManager.InitAsync(SteamID);
             PlayerManagers.Add(playerId, roleManager);
             MyPlayer player = MySession.Static.Players.TryGetPlayerBySteamId(SteamID);
-            OnlinePlayersList.Add(SteamID, player);
+            if (!DelayFinished)
+                OnlinePlayersList.Add(SteamID, player);
         }
 
         private ulong GetPlayerSteamID(long playerId)
         {
             return MySession.Static.Players.TryGetSteamId(playerId);
         }
-        
-        
+
         private void SetupConfig()
         {
             string dataPath = Path.Combine(StoragePath, "RPGPlugin");

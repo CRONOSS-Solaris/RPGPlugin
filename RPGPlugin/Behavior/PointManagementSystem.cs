@@ -1,13 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using NLog;
-using NLog.Fluent;
-using Sandbox.Game;
-using Sandbox.Game.Entities;
 using Sandbox.Game.Weapons;
 using Sandbox.ModAPI;
 using VRage.ModAPI;
-using VRageMath;
 
 namespace RPGPlugin.PointManagementSystem
 {
@@ -19,17 +14,17 @@ namespace RPGPlugin.PointManagementSystem
             // Using a flat rate system until later.....
             
             // Add any custom ore subtype definitions needed here
-            ["Stone"] = 0.2,
-            ["Silicon"] = 0.3,
-            ["Iron"] = 0.3,
-            ["Nickel"] = 0.3,
-            ["Cobalt"] = 0.4,
-            ["Magnesium"] = 0.4,
-            ["Silver"] = 0.5,
-            ["Gold"] = 0.5,
-            ["Platinum"] = 0.55,
-            ["Uranium"] = 0.6,
-            ["Ice"] = 0.35
+            ["Stone"] = 1,
+            ["Silicon"] = 1.2,
+            ["Iron"] = 1.3,
+            ["Nickel"] = 1.3,
+            ["Cobalt"] = 1.8,
+            ["Magnesium"] = 2.4,
+            ["Silver"] = 1.5,
+            ["Gold"] = 2.5,
+            ["Platinum"] = 2.8,
+            ["Uranium"] = 3.0,
+            ["Ice"] = 1.35
         };
         
         public PointManager()
@@ -63,10 +58,10 @@ namespace RPGPlugin.PointManagementSystem
             if (Roles.PlayerManagers[ShipDrill.OwnerId].GetRole() != PlayerManager.FromRoles.Miner) return;
             
             // Calculate exp points.   !!!! Amount is not given, will need to look for another way or patch.
-            //double points = amount * ExpRatio[subtypeid];
+            double points = 0.5 * ExpRatio[subtypeid];
 
             Roles.Log.Info("Reward exp for mining " + subtypeid);
-            await Roles.PlayerManagers[ShipDrill.OwnerId].AddMinerExp(0.007);  
+            await Roles.PlayerManagers[ShipDrill.OwnerId].AddMinerExp(points);  
             // Tested with 0.3 and that was allot of points very fast with 13 drills!!
             // Thousands of points in 1 minute.  So will need to be very small numbers!!!
         }
