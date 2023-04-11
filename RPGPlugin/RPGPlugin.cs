@@ -1,12 +1,14 @@
 ﻿using NLog;
-using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Timers;
 using System.Windows.Controls;
 using System.Xml.Serialization;
+using NLog.Fluent;
+using RPGPlugin.PointManagementSystem;
 using Sandbox.Game;
+using Sandbox.Game.Multiplayer;
 using Sandbox.Game.World;
 using Torch;
 using Torch.API;
@@ -14,7 +16,6 @@ using Torch.API.Managers;
 using Torch.API.Plugins;
 using Torch.API.Session;
 using Torch.Session;
-using VRage.Game.ModAPI;
 
 namespace RPGPlugin
 {
@@ -22,12 +23,13 @@ namespace RPGPlugin
     {
          
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        public static List<RoleManager> PlayerManagers = new List<RoleManager>();
+        public static Dictionary<long, PlayerManager> PlayerManagers = new Dictionary<long, PlayerManager>();
         private static Timer AutoSaver = new Timer();
+        public static PointManager PointsManager = new PointManager();
+        private static Timer DelayStart = new Timer();
 
         // Instead of writing to their player data file every tick they mine, track and save
-        // all the data periodically.  
-        public static Dictionary<ulong, PlayerData> TrackOnlinePlayers = new Dictionary<ulong, PlayerData>();
+        // all the data periodically.
         public static Dictionary<ulong, MyPlayer> OnlinePlayersList = new Dictionary<ulong, MyPlayer>();
         public static Roles Instance { get; private set; }
         
@@ -56,88 +58,89 @@ namespace RPGPlugin
         
         private void SessionChanged(ITorchSession session, TorchSessionState state)
         {
-
             switch (state)
             {
                 case TorchSessionState.Loaded:
                     Log.Info("Session Loaded!");
-                    MyAPIGateway.Entities.OnEntityAdd += ExpMiningManager.OnEntityAdd;
-                    
-                    // When a player connects, this will load their data and update online player list.
-                    MyVisualScriptLogicProvider.PlayerConnected += LoadPlayerData;
-                    // When a player disconnects, this will save and unload their data and update online player list.
-                    MyVisualScriptLogicProvider.PlayerDisconnected += PlayerDisconnected;
-                    AutoSaver.Start();
+                    DelayStart.Interval = TimeSpan.FromMinutes(2).TotalMilliseconds;
+                    DelayStart.Elapsed += DelayStartActivate;
+                    DelayStart.Start();
+                    Log.Info("Delay Start Timer Active!"); // DEBUG
                     break;
 
                 case TorchSessionState.Unloading:
                     Log.Info("Session Unloading!");
-                    MyAPIGateway.Entities.OnEntityAdd -= ExpMiningManager.OnEntityAdd;
                     MyVisualScriptLogicProvider.PlayerConnected -= LoadPlayerData;
                     MyVisualScriptLogicProvider.PlayerDisconnected -= PlayerDisconnected;
-                    SaveAllLoadPlayerData();
+                    MyVisualScriptLogicProvider.ShipDrillCollected -= PointsManager.ShipDrillCollected;
+                    SaveAllPlayersForShutDown();
+                    DelayStart.Stop();
                     AutoSaver.Stop();
                     break;
             }
         }
 
-        private void PlayerDisconnected(long playerId)
+        private void DelayStartActivate(object sender, ElapsedEventArgs e)
         {
-            // Save their data
-            SavePlayerData(GetPlayerSteamID(playerId));
-            
+            // This is because on server restart, players who rush to connect will trigger connect events
+            // before the server is properly ready and will pass playerid of 0.  This is a standard problem
+            // for both plugins and mods. Welcome to the wonderful world of Keen :=)
+            Log.Info("Role DelayStart activated"); // DEBUG 
+            DelayStart.Stop();
+            DelayStart.Dispose(); // No longer need it, clean it up now.
+            // When a player spawns their ingame data is loaded, now we load their data and update online player list.
+            MyVisualScriptLogicProvider.PlayerConnected += LoadPlayerData;
+            // When a player disconnects, this will save and unload their data and update online player list.
+            MyVisualScriptLogicProvider.PlayerDisconnected += PlayerDisconnected;
+            MyVisualScriptLogicProvider.ShipDrillCollected += PointsManager.ShipDrillCollected;
+            // Not the connect listeners are active, we can pick up the current logged in players and set them up.
+            ICollection<MyPlayer> onlinePlayers = Sync.Players.GetOnlinePlayers();
+            foreach (MyPlayer player in onlinePlayers)
+            {
+                LoadPlayerData(player.Identity.IdentityId);
+                Log.Info("Role Data Active For " + player.Identity.DisplayName); // DEBUG
+            }
+            onlinePlayers.Clear();
+            AutoSaver.Start();
+        }
+
+        private async void PlayerDisconnected(long playerId)
+        {
             // Unload them from the system, free up resources.
-            for (int index = PlayerManagers.Count - 1; index >= 0; index--)
+            if (!PlayerManagers.ContainsKey(playerId))
             {
-                RoleManager manager = PlayerManagers[index];
-                if (manager.PlayerData.PlayerID != playerId) continue;
-                manager.SavePlayerData();
+                Log.Error($"Unable to save profile for player [IdentityID:{playerId}], it was probably not loaded.");
+                return;
             }
+            await PlayerManagers[playerId].SavePlayerData();
+            PlayerManagers.Remove(playerId);
         }
 
-        private void SaveAllLoadPlayerData()
+        private void SaveAllPlayersForShutDown()
         {
-            for (int index = PlayerManagers.Count - 1; index >= 0; index--)
+            foreach (KeyValuePair<long,PlayerManager> manager in PlayerManagers)
             {
-                PlayerManagers[index].SavePlayerData();
+                manager.Value.SavePlayerData();
+                Log.Info("Roles Tracking Finishe For " + manager.Value.PlayerData.PlayerID);
             }
-        }
-
-        public void SavePlayerData(ulong SteamID)
-        {
-            for (int index = PlayerManagers.Count - 1; index >= 0; index--)
-            {
-                RoleManager manager = PlayerManagers[index];
-                if (manager.PlayerData.SteamId != SteamID) continue;
-                manager.SavePlayerData();
-            }
+            PlayerManagers.Clear();
         }
 
         private void LoadPlayerData(long playerId)
         {
-            RoleManager roleManager = new RoleManager();
             ulong SteamID = GetPlayerSteamID(playerId);
-            roleManager.GetRole(SteamID);
-            PlayerManagers.Add(roleManager);
+            PlayerManager roleManager = new PlayerManager(SteamID);
+            roleManager.InitAsync(SteamID);
+            PlayerManagers.Add(playerId, roleManager);
             MyPlayer player = MySession.Static.Players.TryGetPlayerBySteamId(SteamID);
             OnlinePlayersList.Add(SteamID, player);
         }
 
-        public ulong GetPlayerSteamID(long playerId)
+        private ulong GetPlayerSteamID(long playerId)
         {
-            var OnlinePlayers = new List<IMyPlayer>();
-            MyAPIGateway.Multiplayer.Players.GetPlayers(OnlinePlayers);
-            for (int index = OnlinePlayers.Count - 1; index >= 0; index--)
-            {
-                if (OnlinePlayers[index].Identity.IdentityId != playerId) continue;
-                ulong SteamID = OnlinePlayers[index].SteamUserId;
-                if (OnlinePlayersList.ContainsKey(SteamID))
-                    OnlinePlayersList.Remove(SteamID);
-                return OnlinePlayers[index].SteamUserId;
-            }
-
-            return 0; // Something went wrong 
+            return MySession.Static.Players.TryGetSteamId(playerId);
         }
+        
         
         private void SetupConfig()
         {
@@ -191,8 +194,6 @@ namespace RPGPlugin
                 }
             }
         }
-
-
 
         public void Save()
         {
