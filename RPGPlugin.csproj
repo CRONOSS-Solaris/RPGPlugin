@@ -130,7 +130,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="RPGPlugin\Behavior\PointManagementSystem.cs" />
+    <Compile Include="RPGPlugin\Config\HunterConfig.cs" />
+    <Compile Include="RPGPlugin\Config\MinerConfig.cs" />
     <Compile Include="RPGPlugin\Config\PlayerData.cs" />
+    <Compile Include="RPGPlugin\Config\WarriorConfig.cs" />
     <Compile Include="RPGPlugin\Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
