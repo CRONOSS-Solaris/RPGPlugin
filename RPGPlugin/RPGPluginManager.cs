@@ -1,65 +1,55 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Sandbox.Game;
+using Sandbox.Game.World;
+using VRageMath;
 
 namespace RPGPlugin
 {
-    public class RoleManager
+    public class PlayerManager
     {
-        private const string DATA_DIRECTORY = "RPGPlugin/Player Data/";
+        private const string DATA_DIRECTORY = "Instance/RPGPlugin/Player Data/";
         private const string DATA_FILE_EXTENSION = ".xml";
+        public PlayerData PlayerData = new PlayerData();
 
-        private readonly Dictionary<string, IRole> _roles = new Dictionary<string, IRole>();
-         
-        public RoleManager()
+        public enum FromRoles {NoRole, Miner, Warrior}
+
+        public PlayerManager(ulong steamId)
         {
-            // dodajemy dostępne role
-            AddRole(new Miner());
-            // dodaj kolejne role tutaj, np. AddRole(new Warrior());
+            
         }
 
-        public void AddRole(IRole role)
+        public async void InitAsync(ulong steamId)
         {
-            _roles.Add(role.GetType().Name, role);
+            await LoadPlayerData(steamId);
         }
 
-        public bool SetRole(ulong steamId, string roleName)
+        public async void SetRole(FromRoles role)
         {
-            if (!_roles.ContainsKey(roleName))
-            {
-                return false; // jeśli rola nie istnieje, nie ustawiamy jej dla gracza
-            }
-
-            var playerData = LoadPlayerData(steamId);
-            if (playerData != null)
-            {
-                playerData.SelectedRole = roleName;
-                SavePlayerData(playerData);
-                return true;
-            }
-            return false;
+            PlayerData.SelectedRole = role;
+            await SavePlayerData();
         }
 
-        public IRole GetRole(ulong steamId)
+        public FromRoles GetRole()
         {
-            var playerData = LoadPlayerData(steamId);
-            if (playerData == null || !_roles.ContainsKey(playerData.SelectedRole))
-            {
-                return null;
-            }
-
-            return _roles[playerData.SelectedRole];
+            return PlayerData.SelectedRole;
         }
 
-        private PlayerData LoadPlayerData(ulong steamId)
+        private Task LoadPlayerData(ulong steamId)
         {
             string fileName = steamId + DATA_FILE_EXTENSION;
             string filePath = Path.Combine(DATA_DIRECTORY, fileName);
 
             if (!File.Exists(filePath))
             {
-                return null;
+                // return null;  Instead of returning null, create a new dataset.  They are a new player maybe.
+                PlayerData newPlayer = new PlayerData();
+                MySession.Static.Players.TryGetPlayerBySteamId(steamId, out MyPlayer player);
+                PlayerData.CreateNew(steamId, player.Identity.IdentityId);
+                return Task.CompletedTask;
             }
 
             try
@@ -68,19 +58,28 @@ namespace RPGPlugin
                 {
                     var serializer = new XmlSerializer(typeof(PlayerData));
                     var playerData = (PlayerData)serializer.Deserialize(reader);
-                    return playerData;
+                    PlayerData = playerData;
+                    SavePlayerData();
+                    return Task.CompletedTask;
                 }
             }
             catch (Exception e)
             {
                 Roles.Log.Warn(e);
-                return null;
+                return Task.FromResult(new PlayerData());
             }
         }
 
-        private void SavePlayerData(PlayerData playerData)
+        public Task SavePlayerData()
         {
-            string fileName = playerData.SteamId + DATA_FILE_EXTENSION;
+            if (PlayerData == null)
+            {
+                // This should never be null.  If it is, something went wacko.  Good to have it though!
+                Roles.Log.Error("Null PlayerData on Save!!!");
+                return Task.CompletedTask;
+            }
+            
+            string fileName = PlayerData.SteamId + DATA_FILE_EXTENSION;
             string filePath = Path.Combine(DATA_DIRECTORY, fileName);
 
             try
@@ -88,14 +87,48 @@ namespace RPGPlugin
                 Directory.CreateDirectory(DATA_DIRECTORY);
                 using (var writer = new StreamWriter(filePath))
                 {
+                    //DEBUG ONLY//
+                    Roles.Log.Fatal(filePath); // FOR DEBUGGING
                     var serializer = new XmlSerializer(typeof(PlayerData));
-                    serializer.Serialize(writer, playerData);
+                    serializer.Serialize(writer, PlayerData);
                 }
             }
             catch (Exception e)
             {
                 Roles.Log.Warn(e);
             }
+            
+            return Task.CompletedTask;
+        }
+        
+        public async Task AddMinerExp(double exp)
+        {
+            /* level  2    requires  67 points
+               level  20   requires  668 points
+               level  50   requires  1,670 points
+               level  100  requires  3,340 points
+               never ending levels!  Players need bragging rights, even miners!
+             */
+            double expForLevelUp = (PlayerData.MinerLevel * (32.4 + PlayerData.MinerLevel));
+
+            if (PlayerData.MinerExp + exp >= expForLevelUp)
+            {
+                PlayerData.MinerLevel++;
+                PlayerData.MinerExp = Math.Round(PlayerData.MinerExp + exp) - expForLevelUp;
+                await SavePlayerData();
+                MyVisualScriptLogicProvider.SendChatMessageColored("You have leveled up!!!", Color.Green, "Roles", PlayerData.PlayerID);
+            }
+            else
+            {
+                PlayerData.MinerExp += exp;
+                Roles.Log.Warn($"Your EXP = {PlayerData.MinerExp.ToString(CultureInfo.InvariantCulture)}");
+            }
+        }
+
+        public int ExpToLevelUp()
+        {
+            int expForLevelUp = (int)Math.Round(PlayerData.MinerLevel * (32.4 + PlayerData.MinerLevel));
+            return (int)Math.Round(expForLevelUp - PlayerData.MinerExp);
         }
     }
 }

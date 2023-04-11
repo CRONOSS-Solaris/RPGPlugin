@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Xml.Serialization;
+﻿using System.Text;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game.ModAPI;
@@ -11,102 +10,88 @@ namespace RPGPlugin
     {
         public Roles Plugin => (Roles)Context.Plugin;
 
-
         [Command("setrole", "Set your role")]
         [Permission(MyPromoteLevel.None)]
-        public void SetRole(string roleName)
+        public async void SetRole(string roleName)
         {
-            var player = Context.Player;
-            var config = Plugin.Config;
-
-            if (config.RolesList.Contains(roleName))
+            if (Context.Player == null)
             {
-                // save player's data
-                ulong steamId = player.SteamUserId;
-                string dataPath = Path.Combine(Plugin.StoragePath, "RPGPlugin", "Player Data");
-                string filePath = Path.Combine(dataPath, $"{steamId}.xml");
-
-                // create the player's data if it doesn't exist
-                var serializer = new XmlSerializer(typeof(PlayerData));
-                PlayerData playerData;
-                if (!File.Exists(filePath))
-                {
-                    playerData = new PlayerData(steamId);
-                }
-                else
-                {
-                    using (var reader = new StreamReader(filePath))
-                    {
-                        playerData = (PlayerData)serializer.Deserialize(reader);
-                    }
-                }
-
-                // set the selected role and save the player's data
-                if (playerData.SelectedRole == null)
-                {
-                    playerData.SelectedRole = roleName;
-                    using (var writer = new StreamWriter(filePath))
-                    {
-                        serializer.Serialize(writer, playerData);
-                    }
-                    Context.Respond($"Role set to {roleName} for {player.DisplayName}.");
-                }
-                else
-                {
-                    Context.Respond($"{player.DisplayName}, you can only set your role once.");
-                }
+                Context.Respond("This is a player command only.");
+                return;
             }
-            else
+
+            if (!Roles.PlayerManagers.ContainsKey(Context.Player.IdentityId))
             {
-                Context.Respond($"Invalid role {roleName}.");
+                Context.Respond("Problem loading your profile.");
+                return;
+            }
+
+            // Get player Manager
+            switch (roleName.ToLower()) // No need for case sensitivity.
+            {
+                case "norole":
+                    Roles.PlayerManagers[Context.Player.IdentityId].PlayerData.SelectedRole = PlayerManager.FromRoles.NoRole;
+                    await Roles.PlayerManagers[Context.Player.IdentityId].SavePlayerData();
+                    Context.Respond("Your role has been updated to [No Role]");
+                    break;
+
+                case "miner":
+                    Roles.PlayerManagers[Context.Player.IdentityId].PlayerData.SelectedRole = PlayerManager.FromRoles.Miner;
+                    await Roles.PlayerManagers[Context.Player.IdentityId].SavePlayerData();
+                    Context.Respond("Your role has been updated to [Miner]");
+                    break;
+
+                case "warrior":
+                    Roles.PlayerManagers[Context.Player.IdentityId].PlayerData.SelectedRole = PlayerManager.FromRoles.Warrior;
+                    await Roles.PlayerManagers[Context.Player.IdentityId].SavePlayerData();
+                    Context.Respond("Your role has been updated to [Warrior]");
+                    break;
+
+                default:
+                    Context.Respond("No role with that name found, check your spelling and try again.");
+                    break;
+            
             }
         }
-
 
         [Command("roles", "Displays the list of available roles and their descriptions.")]
         [Permission(MyPromoteLevel.None)]
         public void ListRoles()
         {
-            var message = "Available roles:\n";
-            message += "Miner - This role allows you to mine and gather resources more efficiently.\n";
-            message += "Hunter - This role increases your damage against animals and improves your tracking abilities.\n";
-            message += "Warrior - This role increases your damage against other players and gives you access to better weapons.\n";
+            StringBuilder reply = new StringBuilder();
+            reply.AppendLine("Available roles:");
+            reply.AppendLine("Miner - This role allows you to mine and gather resources more efficiently.");
+            reply.AppendLine("Hunter - This role increases your damage against animals and improves your tracking abilities.");
+            reply.AppendLine("Warrior - This role increases your damage against other players and gives you access to better weapons.");
 
-            Context.Respond(message);
+            Context.Respond(reply.ToString());
         }
 
         [Command("stats", "Displays current level and exp needed for next level.")]
         [Permission(MyPromoteLevel.None)]
         public void Stats()
         {
-            var player = Context.Player;
-            ulong steamId = player.SteamUserId;
-            string dataPath = Path.Combine(Plugin.StoragePath, "RPGPlugin", "Player Data");
-            string filePath = Path.Combine(dataPath, $"{steamId}.xml");
-
-            var serializer = new XmlSerializer(typeof(PlayerData));
-            PlayerData playerData;
-            if (!File.Exists(filePath))
+            if (Context.Player == null)
             {
-                playerData = new PlayerData(steamId);
+                Context.Respond("This is a player command.");
+                return;
             }
-            else
+            
+            if (!Roles.PlayerManagers.ContainsKey(Context.Player.IdentityId))
             {
-                using (var reader = new StreamReader(filePath))
-                {
-                    playerData = (PlayerData)serializer.Deserialize(reader);
-                }
+                Context.Respond("Problem loading your profile, please contact staff about this error if it continues.");
+                return;
             }
-
-            int expNeededForNextLevel = playerData.ExpPerLevel[playerData.Level]; // Obliczanie wymaganego doświadczenia na podstawie listy
-
-            var message = "Informations:\n";
-            message += $"Current level: {playerData.Level}.\n";
-            message += $"Exp needed for next level: {expNeededForNextLevel - playerData.Exp}.\n";
-
-            Context.Respond(message);
+            
+            StringBuilder reply = new StringBuilder();
+            reply.AppendLine("*** Information ***");
+            reply.AppendLine("--------------------");
+            reply.AppendLine("Miner:");
+            reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.IdentityId].PlayerData.MinerLevel.ToString()}.");
+            reply.AppendLine($"Exp needed for next level: {Roles.PlayerManagers[Context.Player.IdentityId].ExpToLevelUp().ToString()}.");
+            reply.AppendLine("--------------------");
+            Context.Respond(reply.ToString());
+            
         }
-
-
     }
 }
