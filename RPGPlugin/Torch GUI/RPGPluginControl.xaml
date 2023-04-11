@@ -41,7 +41,15 @@
             </TabItem>
 
             <TabItem Header="Miner">
-                <Image Height="371" Source="/RPGPlugin;component/comingsoon.png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
+                <Grid>
+                    <DataGrid x:Name="ExpRatioDataGrid" ItemsSource="{Binding MinerConfig.ExpRatio}" AutoGenerateColumns="False" CellEditEnding="ExpRatioDataGrid_CellEditEnding" Height="NaN" Margin="10,10,522,10" Width="NaN">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Mineral" Binding="{Binding Key}" IsReadOnly="True" />
+                            <DataGridTextColumn Header="Experience" Binding="{Binding Value}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                </Grid>
             </TabItem>
 
             <TabItem Header="Hunter">
