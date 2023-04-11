@@ -30,19 +30,19 @@ namespace RPGPlugin
             switch (roleName.ToLower()) // No need for case sensitivity.
             {
                 case "norole":
-                    Roles.PlayerManagers[Context.Player.IdentityId].PlayerData.SelectedRole = PlayerManager.FromRoles.NoRole;
+                    Roles.PlayerManagers[Context.Player.IdentityId]._PlayerData.SelectedRole = PlayerManager.FromRoles.NoRole;
                     await Roles.PlayerManagers[Context.Player.IdentityId].SavePlayerData();
                     Context.Respond("Your role has been updated to [No Role]");
                     break;
 
                 case "miner":
-                    Roles.PlayerManagers[Context.Player.IdentityId].PlayerData.SelectedRole = PlayerManager.FromRoles.Miner;
+                    Roles.PlayerManagers[Context.Player.IdentityId]._PlayerData.SelectedRole = PlayerManager.FromRoles.Miner;
                     await Roles.PlayerManagers[Context.Player.IdentityId].SavePlayerData();
                     Context.Respond("Your role has been updated to [Miner]");
                     break;
 
                 case "warrior":
-                    Roles.PlayerManagers[Context.Player.IdentityId].PlayerData.SelectedRole = PlayerManager.FromRoles.Warrior;
+                    Roles.PlayerManagers[Context.Player.IdentityId]._PlayerData.SelectedRole = PlayerManager.FromRoles.Warrior;
                     await Roles.PlayerManagers[Context.Player.IdentityId].SavePlayerData();
                     Context.Respond("Your role has been updated to [Warrior]");
                     break;
@@ -87,7 +87,7 @@ namespace RPGPlugin
             reply.AppendLine("*** Information ***");
             reply.AppendLine("--------------------");
             reply.AppendLine("Miner:");
-            reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.IdentityId].PlayerData.MinerLevel.ToString()}.");
+            reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.IdentityId]._PlayerData.MinerLevel.ToString()}.");
             reply.AppendLine($"Exp needed for next level: {Roles.PlayerManagers[Context.Player.IdentityId].ExpToLevelUp().ToString()}.");
             reply.AppendLine("--------------------");
             Context.Respond(reply.ToString());

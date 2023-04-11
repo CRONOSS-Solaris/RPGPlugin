@@ -13,14 +13,11 @@ namespace RPGPlugin
     {
         private const string DATA_DIRECTORY = "Instance/RPGPlugin/Player Data/";
         private const string DATA_FILE_EXTENSION = ".xml";
-        public PlayerData PlayerData = new PlayerData();
-
+        public PlayerData _PlayerData = new PlayerData();
+        
         public enum FromRoles {NoRole, Miner, Warrior}
 
-        public PlayerManager(ulong steamId)
-        {
-            
-        }
+        public PlayerManager() { }
 
         public async void InitAsync(ulong steamId)
         {
@@ -29,76 +26,81 @@ namespace RPGPlugin
 
         public async void SetRole(FromRoles role)
         {
-            PlayerData.SelectedRole = role;
+            _PlayerData.SelectedRole = role;
             await SavePlayerData();
         }
 
         public FromRoles GetRole()
         {
-            return PlayerData.SelectedRole;
+            return _PlayerData.SelectedRole;
         }
 
         private Task LoadPlayerData(ulong steamId)
         {
-            string fileName = steamId + DATA_FILE_EXTENSION;
-            string filePath = Path.Combine(DATA_DIRECTORY, fileName);
-
-            if (!File.Exists(filePath))
+            lock (Roles._FILELOCK)
             {
-                // return null;  Instead of returning null, create a new dataset.  They are a new player maybe.
-                PlayerData newPlayer = new PlayerData();
-                MySession.Static.Players.TryGetPlayerBySteamId(steamId, out MyPlayer player);
-                PlayerData.CreateNew(steamId, player.Identity.IdentityId);
-                return Task.CompletedTask;
-            }
+                string fileName = steamId + DATA_FILE_EXTENSION;
+                string filePath = Path.Combine(DATA_DIRECTORY, fileName);
 
-            try
-            {
-                using (var reader = new StreamReader(filePath))
+                if (!File.Exists(filePath))
                 {
-                    var serializer = new XmlSerializer(typeof(PlayerData));
-                    var playerData = (PlayerData)serializer.Deserialize(reader);
-                    PlayerData = playerData;
-                    SavePlayerData();
+                    if (!MySession.Static.Players.TryGetPlayerBySteamId(steamId, out MyPlayer player))
+                    {
+                        Roles.Log.Error("Unable to get player by SteamID, new player file creation failed.");
+                        return Task.CompletedTask;
+                    }
+                    _PlayerData.CreateNew(steamId, player.Identity.IdentityId);
                     return Task.CompletedTask;
                 }
-            }
-            catch (Exception e)
-            {
-                Roles.Log.Warn(e);
-                return Task.FromResult(new PlayerData());
+
+                try
+                {
+                    using (var reader = new StreamReader(filePath))
+                    {
+                        var serializer = new XmlSerializer(typeof(PlayerData));
+                        var playerData = (PlayerData)serializer.Deserialize(reader);
+                        _PlayerData = playerData;
+                        return Task.CompletedTask;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Roles.Log.Warn(e);
+                    return Task.FromResult(new PlayerData());
+                }
             }
         }
 
         public Task SavePlayerData()
         {
-            if (PlayerData == null)
+            lock(Roles._FILELOCK)
             {
-                // This should never be null.  If it is, something went wacko.  Good to have it though!
-                Roles.Log.Error("Null PlayerData on Save!!!");
+                if (_PlayerData == null)
+                {
+                    // This should never be null.  If it is, something went wacko.  Good to have it though!
+                    Roles.Log.Error("Null PlayerData on Save!!!");
+                    return Task.CompletedTask;
+                }
+            
+                string fileName = _PlayerData.SteamId + DATA_FILE_EXTENSION;
+                string filePath = Path.Combine(DATA_DIRECTORY, fileName);
+
+                try
+                {
+                    using (var writer = new StreamWriter(filePath))
+                    {
+                        Roles.Log.Fatal(filePath); // FOR DEBUGGING
+                        var serializer = new XmlSerializer(typeof(PlayerData));
+                        serializer.Serialize(writer, _PlayerData);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Roles.Log.Warn(e);
+                }
+            
                 return Task.CompletedTask;
             }
-            
-            string fileName = PlayerData.SteamId + DATA_FILE_EXTENSION;
-            string filePath = Path.Combine(DATA_DIRECTORY, fileName);
-
-            try
-            {
-                Directory.CreateDirectory(DATA_DIRECTORY);
-                using (var writer = new StreamWriter(filePath))
-                {
-                    //DEBUG ONLY//
-                    Roles.Log.Fatal(filePath); // FOR DEBUGGING
-                    var serializer = new XmlSerializer(typeof(PlayerData));
-                    serializer.Serialize(writer, PlayerData);
-                }
-            }
-            catch (Exception e)
-            {
-                Roles.Log.Warn(e);
-            }
-            
-            return Task.CompletedTask;
         }
         
         public async Task AddMinerExp(double exp)
@@ -109,26 +111,26 @@ namespace RPGPlugin
                level  100  requires  3,340 points
                never ending levels!  Players need bragging rights, even miners!
              */
-            double expForLevelUp = (PlayerData.MinerLevel * (32.4 + PlayerData.MinerLevel));
+            double expForLevelUp = (_PlayerData.MinerLevel * (32.4 + _PlayerData.MinerLevel));
 
-            if (PlayerData.MinerExp + exp >= expForLevelUp)
+            if (_PlayerData.MinerExp + exp >= expForLevelUp)
             {
-                PlayerData.MinerLevel++;
-                PlayerData.MinerExp = Math.Round(PlayerData.MinerExp + exp) - expForLevelUp;
+                _PlayerData.MinerLevel++;
+                _PlayerData.MinerExp = Math.Round(_PlayerData.MinerExp + exp) - expForLevelUp;
                 await SavePlayerData();
-                MyVisualScriptLogicProvider.SendChatMessageColored("You have leveled up!!!", Color.Green, "Roles", PlayerData.PlayerID);
+                MyVisualScriptLogicProvider.SendChatMessageColored("You have leveled up!!!", Color.Green, "Roles", _PlayerData.PlayerID);
             }
             else
             {
-                PlayerData.MinerExp += exp;
-                Roles.Log.Warn($"Your EXP = {PlayerData.MinerExp.ToString(CultureInfo.InvariantCulture)}");
+                _PlayerData.MinerExp += exp;
+                Roles.Log.Warn($"Your EXP = {_PlayerData.MinerExp.ToString(CultureInfo.InvariantCulture)}");
             }
         }
 
         public int ExpToLevelUp()
         {
-            int expForLevelUp = (int)Math.Round(PlayerData.MinerLevel * (32.4 + PlayerData.MinerLevel));
-            return (int)Math.Round(expForLevelUp - PlayerData.MinerExp);
+            int expForLevelUp = (int)Math.Round(_PlayerData.MinerLevel * (32.4 + _PlayerData.MinerLevel));
+            return (int)Math.Round(expForLevelUp - _PlayerData.MinerExp);
         }
     }
 }
