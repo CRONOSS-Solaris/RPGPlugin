@@ -25,10 +25,9 @@ namespace RPGPlugin
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         public static Dictionary<long, PlayerManager> PlayerManagers = new Dictionary<long, PlayerManager>();
         private static Timer AutoSaver = new Timer();
-        public PointManager PointsManager { get; private set; }
+        public PointManager ExpManager = new PointManager();
         private static Timer DelayStart = new Timer();
         public static object _FILELOCK = new object();
-        public static FileManager PlayerFile = new FileManager();
         private bool DelayFinished = false;
 
         // Instead of writing to their player data file every tick they mine, track and save
@@ -51,13 +50,14 @@ namespace RPGPlugin
             // This is how often all online players data will be saved automatically
             AutoSaver.Interval = TimeSpan.FromMinutes(1).TotalMilliseconds;
 
-            MinerConfig = MinerConfig.LoadMinerConfig(StoragePath);
+            MinerConfig = MinerConfig.LoadMinerConfig();
 
             var sessionManager = Torch.Managers.GetManager<TorchSessionManager>();
             if (sessionManager != null)
                 sessionManager.SessionStateChanged += SessionChanged;
             else
                 Log.Warn("No session manager loaded!");
+            ExpManager.Init(); // Load the config files
 
             Save();
         }
@@ -78,7 +78,7 @@ namespace RPGPlugin
                     Log.Info("Session Unloading!");
                     MyVisualScriptLogicProvider.PlayerConnected -= LoadPlayerData;
                     MyVisualScriptLogicProvider.PlayerDisconnected -= PlayerDisconnected;
-                    MyVisualScriptLogicProvider.ShipDrillCollected -= PointsManager.ShipDrillCollected;
+                    MyVisualScriptLogicProvider.ShipDrillCollected -= ExpManager.ShipDrillCollected;
                     SaveAllPlayersForShutDown();
                     DelayStart.Stop();
                     AutoSaver.Stop();
@@ -98,7 +98,7 @@ namespace RPGPlugin
             MyVisualScriptLogicProvider.PlayerConnected += LoadPlayerData;
             // When a player disconnects, this will save and unload their data and update online player list.
             MyVisualScriptLogicProvider.PlayerDisconnected += PlayerDisconnected;
-            MyVisualScriptLogicProvider.ShipDrillCollected += PointsManager.ShipDrillCollected;
+            MyVisualScriptLogicProvider.ShipDrillCollected += ExpManager.ShipDrillCollected;
             // Not the connect listeners are active, we can pick up the current logged in players and set them up.
             List<MyPlayer> onlinePlayers = Sync.Players.GetOnlinePlayers().ToList();
             foreach (MyPlayer player in onlinePlayers)
