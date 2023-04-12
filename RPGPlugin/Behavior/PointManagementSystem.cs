@@ -15,9 +15,15 @@ namespace RPGPlugin.PointManagementSystem
 
         // Add any custom ore subtype definitions needed here
 
-        public PointManager(string storagePath)
+        public PointManager()
         {
-            ExpRatio = MinerConfig.LoadMinerConfig(storagePath).ExpRatio;
+            // Not a good idea to load the file in the constructor, if it fails the whole process fails.
+        }
+
+        public Task Init()
+        { 
+            ExpRatio = MinerConfig.LoadMinerConfig().ExpRatio;
+            return Task.CompletedTask; // Easy way to await and not block any important threads during IO operation.
         }
 
         // MINING SECTION
@@ -47,9 +53,13 @@ namespace RPGPlugin.PointManagementSystem
             if (Roles.PlayerManagers[ShipDrill.OwnerId].GetRole() != PlayerManager.FromRoles.Miner) return;
             
             // Calculate exp points.   !!!! Amount is not given, will need to look for another way or patch.
-            double points = 0.5 * ExpRatio[subtypeid];
+            // 0.5 was still crazy high lol.  
+            double points = 0.03 * ExpRatio[subtypeid];
 
-            Roles.Log.Info("Reward exp for mining " + subtypeid);
+            // Mining only stone but game reports Ice and other ores being mined... need to research why this is happening.
+            if (subtypeid != "Stone")
+                Roles.Log.Info("Reward exp for mining " + subtypeid);
+            
             await Roles.PlayerManagers[ShipDrill.OwnerId].AddMinerExp(points);  
             // Tested with 0.3 and that was allot of points very fast with 13 drills!!
             // Thousands of points in 1 minute.  So will need to be very small numbers!!!
