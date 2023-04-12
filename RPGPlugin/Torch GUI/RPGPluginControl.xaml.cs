@@ -32,7 +32,7 @@ namespace RPGPlugin
                 var mineral = ((KeyValuePair<string, double>)e.Row.Item).Key;
                 var newValue = double.Parse(((TextBox)e.EditingElement).Text);
                 Plugin.MinerConfig.ExpRatio[mineral] = newValue;
-                MinerConfig.SaveMinerConfig(Plugin.MinerConfig, Plugin.StoragePath);
+                MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
             }
         }
 
