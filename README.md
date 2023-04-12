@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://discord.gg/AVQ347un9x">
-    <img src="https://img.shields.io/badge/VERSION-0.0.1-blue" alt="Discord Server">
+    <img src="https://img.shields.io/badge/VERSION-0.2.9-blue" alt="Discord Server">
   </a>
   <a href="https://discord.gg/AVQ347un9x">
     <img src="https://discordapp.com/api/guilds/1008603013025374208/widget.png?style=shield" alt="Discord Server">

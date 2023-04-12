@@ -9,26 +9,15 @@ namespace RPGPlugin.PointManagementSystem
     public class PointManager
     {
         // Miner Reward Rates
-        private Dictionary<string, double> ExpRatio = new Dictionary<string, double>()
+        private Dictionary<string, double> ExpRatio;
+
+        // Using a flat rate system until later.....
+
+        // Add any custom ore subtype definitions needed here
+
+        public PointManager(string storagePath)
         {
-            // Using a flat rate system until later.....
-            
-            // Add any custom ore subtype definitions needed here
-            ["Stone"] = 1,
-            ["Silicon"] = 1.2,
-            ["Iron"] = 1.3,
-            ["Nickel"] = 1.3,
-            ["Cobalt"] = 1.8,
-            ["Magnesium"] = 2.4,
-            ["Silver"] = 1.5,
-            ["Gold"] = 2.5,
-            ["Platinum"] = 2.8,
-            ["Uranium"] = 3.0,
-            ["Ice"] = 1.35
-        };
-        
-        public PointManager()
-        {
+            ExpRatio = MinerConfig.LoadMinerConfig(storagePath).ExpRatio;
         }
 
         // MINING SECTION

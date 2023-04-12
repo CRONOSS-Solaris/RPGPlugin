@@ -25,7 +25,7 @@ namespace RPGPlugin
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         public static Dictionary<long, PlayerManager> PlayerManagers = new Dictionary<long, PlayerManager>();
         private static Timer AutoSaver = new Timer();
-        public static PointManager PointsManager = new PointManager();
+        public PointManager PointsManager { get; private set; }
         private static Timer DelayStart = new Timer();
         public static object _FILELOCK = new object();
         public static FileManager PlayerFile = new FileManager();
@@ -35,7 +35,8 @@ namespace RPGPlugin
         // all the data periodically.
         public static Dictionary<ulong, MyPlayer> OnlinePlayersList = new Dictionary<ulong, MyPlayer>();
         public static Roles Instance { get; private set; }
-        
+        public MinerConfig MinerConfig { get; private set; }
+
         private RolesControl _control;
         public UserControl GetControl() => _control ?? (_control = new RolesControl(this));
         private Persistent<RPGPluginConfig> _config;
@@ -48,7 +49,9 @@ namespace RPGPlugin
             SetupConfig();
             
             // This is how often all online players data will be saved automatically
-            AutoSaver.Interval = TimeSpan.FromMinutes(1).TotalMilliseconds;  
+            AutoSaver.Interval = TimeSpan.FromMinutes(1).TotalMilliseconds;
+
+            MinerConfig = MinerConfig.LoadMinerConfig(StoragePath);
 
             var sessionManager = Torch.Managers.GetManager<TorchSessionManager>();
             if (sessionManager != null)
