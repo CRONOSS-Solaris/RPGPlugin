@@ -154,6 +154,9 @@
     <Compile Include="RPGPlugin\RPGPlugin.cs" />
     <Compile Include="RPGPlugin\RPGPluginCommands.cs" />
     <Compile Include="RPGPlugin\Config\RPGPluginConfig.cs" />
+    <Compile Include="RPGPlugin\Torch GUI\AddOreWindow.xaml.cs">
+      <DependentUpon>AddOreWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="RPGPlugin\Torch GUI\RPGPluginControl.xaml.cs">
       <DependentUpon>RPGPluginControl.xaml</DependentUpon>
     </Compile>
@@ -180,6 +183,10 @@
     <Content Include="manifest.xml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="RPGPlugin\Torch GUI\AddOreWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="RPGPlugin\Torch GUI\RPGPluginControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
