@@ -140,6 +140,5 @@ namespace RPGPlugin
                 MessageBox.Show("Please select at least one ore to delete.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
     }
 }

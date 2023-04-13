@@ -35,8 +35,8 @@
                     <Label Grid.Row="0" Grid.Column="0" Content="ExpMiningHandlerId:" Margin="5,1,6,9" />
                     <TextBox Text="{Binding ExpMiningHandlerId, UpdateSourceTrigger=PropertyChanged}" Margin="0,31,0,369" Height="22" HorizontalAlignment="Center" Width="120" TextAlignment="Center" Grid.RowSpan="2" />
                     <Label Content="1 to 65535" Margin="40,16,42,386" FontSize="8" Grid.RowSpan="2" Background="{x:Null}" />
+                    <Image Source="/RPGPlugin;component/Donate-Button.png" Margin="0,0,10,10" MouseLeftButtonDown="Donate_Click" Stretch="Uniform" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="200" Height="69"/>
 
-                    <Button Content="DONATE" Margin="0,1,0,0" Background="Green" HorizontalAlignment="Right" VerticalAlignment="Top" Click="Donate_Click" Grid.Column="2" Grid.ColumnSpan="2" Grid.RowSpan="2" Height="21" Width="56" BorderBrush="#FF309C00" BorderThickness="0,0,0,0" Foreground="White" FontFamily="Source Sans Pro Black"/>
                 </Grid>
             </TabItem>
 
@@ -46,7 +46,7 @@
                     <Button x:Name="DeleteOreButton" Content="Delete" Margin="195,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Height="25" Grid.Column="0" Grid.Row="0" Click="DeleteOreButton_Click"/>
 
                     <Button x:Name="AddNewOreButton" Content="Add new ore" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100" Height="25" Grid.Column="0" Grid.Row="0" Click="AddNewOreButton_Click"/>
-                    
+
                     <DataGrid x:Name="ExpRatioDataGrid" ItemsSource="{Binding MinerConfig.ExpRatio}" AutoGenerateColumns="False" CellEditEnding="ExpRatioDataGrid_CellEditEnding" Height="372" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,40,0,0" Width="260">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Mineral" Binding="{Binding Key}" IsReadOnly="True" Width="*" />
