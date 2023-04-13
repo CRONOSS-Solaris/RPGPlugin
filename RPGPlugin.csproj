@@ -181,7 +181,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Resource Include="Zrzut ekranu 2023-04-09 220438.png" />
     <Resource Include="comingsoon.png" />
     <Content Include="manifest.xml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
