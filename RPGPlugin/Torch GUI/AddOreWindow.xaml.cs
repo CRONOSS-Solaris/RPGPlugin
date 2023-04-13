@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Collections.Generic;
+using System.Windows;
 
 namespace RPGPlugin
 {
@@ -6,26 +7,41 @@ namespace RPGPlugin
     {
         public string OreName { get; set; }
         public double ExpPerOre { get; set; }
+        public Dictionary<string, double> Ores { get; private set; } = new Dictionary<string, double>();
 
         public AddOreWindow()
         {
             InitializeComponent();
         }
 
-        private void AddButton_Click(object sender, RoutedEventArgs e)
+        private void AddOreButton_Click(object sender, RoutedEventArgs e)
         {
-            OreName = OreNameTextBox.Text;
+            string oreName = OreNameTextBox.Text;
 
             if (double.TryParse(ExpPerOreTextBox.Text, out double expPerOre))
             {
-                ExpPerOre = expPerOre;
-                DialogResult = true;
-                Close();
+                if (!Ores.ContainsKey(oreName))
+                {
+                    Ores.Add(oreName, expPerOre);
+                    OreDataGrid.Items.Add(new { OreName = oreName, ExpPerOre = expPerOre });
+                    OreNameTextBox.Clear();
+                    ExpPerOreTextBox.Clear();
+                }
+                else
+                {
+                    MessageBox.Show("Ore with the provided name already exists. Please choose a different name.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             else
             {
                 MessageBox.Show("Exp per ore must be a number.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = true;
+            Close();
         }
 
         public void SetOreName(string oreName)
@@ -37,6 +53,5 @@ namespace RPGPlugin
         {
             ExpPerOreTextBox.Text = expPerOre.ToString();
         }
-
     }
 }

@@ -36,34 +36,39 @@ namespace RPGPlugin
                 MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
             }
         }
-        
+
         private void AddNewOreButton_Click(object sender, RoutedEventArgs e)
         {
             var addOreWindow = new AddOreWindow();
+
             if (addOreWindow.ShowDialog() == true)
             {
-                string newOreName = addOreWindow.OreName;
-                double newOreExp = addOreWindow.ExpPerOre;
+                var newOres = addOreWindow.Ores;
 
-                if (!Plugin.MinerConfig.ExpRatio.ContainsKey(newOreName))
+                foreach (var newOre in newOres)
                 {
-                    Plugin.MinerConfig.ExpRatio.Add(newOreName, newOreExp);
-                    MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
-                    ExpRatioDataGrid.Items.Refresh();
+                    if (!Plugin.MinerConfig.ExpRatio.ContainsKey(newOre.Key))
+                    {
+                        Plugin.MinerConfig.ExpRatio.Add(newOre.Key, newOre.Value);
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Ore with the name '{newOre.Key}' already exists. Please choose a different name.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
-                else
-                {
-                    MessageBox.Show("Ore with the provided name already exists. Please choose a different name.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+
+                MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
+                ExpRatioDataGrid.Items.Refresh();
             }
         }
+
 
         private void EditOreButton_Click(object sender, RoutedEventArgs e)
         {
             if (ExpRatioDataGrid.SelectedItem != null)
             {
                 var selectedOre = (KeyValuePair<string, double>)ExpRatioDataGrid.SelectedItem;
-                var editOreWindow = new AddOreWindow
+                var editOreWindow = new EditOreWindow
                 {
                     Title = "Edit ore"
                 };
