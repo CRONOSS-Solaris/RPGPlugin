@@ -35,6 +35,81 @@ namespace RPGPlugin
                 MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
             }
         }
+        
+        private void AddNewOreButton_Click(object sender, RoutedEventArgs e)
+        {
+            var addOreWindow = new AddOreWindow();
+            if (addOreWindow.ShowDialog() == true)
+            {
+                string newOreName = addOreWindow.OreName;
+                double newOreExp = addOreWindow.ExpPerOre;
+
+                if (!Plugin.MinerConfig.ExpRatio.ContainsKey(newOreName))
+                {
+                    Plugin.MinerConfig.ExpRatio.Add(newOreName, newOreExp);
+                    MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
+                    ExpRatioDataGrid.Items.Refresh();
+                }
+                else
+                {
+                    MessageBox.Show("Ore with the provided name already exists. Please choose a different name.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void EditOreButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ExpRatioDataGrid.SelectedItem != null)
+            {
+                var selectedOre = (KeyValuePair<string, double>)ExpRatioDataGrid.SelectedItem;
+                var editOreWindow = new AddOreWindow
+                {
+                    Title = "Edit ore"
+                };
+                editOreWindow.SetOreName(selectedOre.Key);
+                editOreWindow.SetExpPerOre(selectedOre.Value);
+
+
+                if (editOreWindow.ShowDialog() == true)
+                {
+                    string editedOreName = editOreWindow.OreName;
+                    double editedOreExp = editOreWindow.ExpPerOre;
+
+                    if (selectedOre.Key != editedOreName)
+                    {
+                        if (!Plugin.MinerConfig.ExpRatio.ContainsKey(editedOreName))
+                        {
+                            Plugin.MinerConfig.ExpRatio.Remove(selectedOre.Key);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Ore with the provided name already exists. Please choose a different name.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                            return;
+                        }
+                    }
+
+                    Plugin.MinerConfig.ExpRatio[editedOreName] = editedOreExp;
+                    MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
+                    ExpRatioDataGrid.Items.Refresh();
+                }
+            }
+        }
+
+        private void DeleteOreButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ExpRatioDataGrid.SelectedItem != null)
+            {
+                var selectedOre = (KeyValuePair<string, double>)ExpRatioDataGrid.SelectedItem;
+                MessageBoxResult result = MessageBox.Show($"Are you sure you want to delete the ore '{selectedOre.Key}'?", "Delete Ore", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    Plugin.MinerConfig.ExpRatio.Remove(selectedOre.Key);
+                    MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
+                    ExpRatioDataGrid.Items.Refresh();
+                }
+            }
+        }
 
     }
 }

@@ -40,12 +40,17 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Miner">
+            <TabItem Header="Miner" Height="20" VerticalAlignment="Top">
                 <Grid>
-                    <DataGrid x:Name="ExpRatioDataGrid" ItemsSource="{Binding MinerConfig.ExpRatio}" AutoGenerateColumns="False" CellEditEnding="ExpRatioDataGrid_CellEditEnding" Height="NaN" Margin="10,10,522,10" Width="NaN">
+                    <Button x:Name="EditOreButton" Content="Edit" Margin="115,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Height="25" Grid.Column="0" Grid.Row="0" Click="EditOreButton_Click"/>
+                    <Button x:Name="DeleteOreButton" Content="Delete" Margin="195,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Height="25" Grid.Column="0" Grid.Row="0" Click="DeleteOreButton_Click"/>
+
+                    <Button x:Name="AddNewOreButton" Content="Add new ore" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100" Height="25" Grid.Column="0" Grid.Row="0" Click="AddNewOreButton_Click"/>
+                    
+                    <DataGrid x:Name="ExpRatioDataGrid" ItemsSource="{Binding MinerConfig.ExpRatio}" AutoGenerateColumns="False" CellEditEnding="ExpRatioDataGrid_CellEditEnding" Height="372" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,40,0,0" Width="260">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Mineral" Binding="{Binding Key}" IsReadOnly="True" />
-                            <DataGridTextColumn Header="Experience" Binding="{Binding Value}" />
+                            <DataGridTextColumn Header="Mineral" Binding="{Binding Key}" IsReadOnly="True" Width="*" />
+                            <DataGridTextColumn Header="Experience" Binding="{Binding Value}" Width="*" />
                         </DataGrid.Columns>
                     </DataGrid>
 
