@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -97,17 +98,37 @@ namespace RPGPlugin
 
         private void DeleteOreButton_Click(object sender, RoutedEventArgs e)
         {
-            if (ExpRatioDataGrid.SelectedItem != null)
+            if (ExpRatioDataGrid.SelectedItems.Count > 0)
             {
-                var selectedOre = (KeyValuePair<string, double>)ExpRatioDataGrid.SelectedItem;
-                MessageBoxResult result = MessageBox.Show($"Are you sure you want to delete the ore '{selectedOre.Key}'?", "Delete Ore", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-                if (result == MessageBoxResult.Yes)
+                MessageBoxResult result;
+                if (ExpRatioDataGrid.SelectedItems.Count == 1)
                 {
-                    Plugin.MinerConfig.ExpRatio.Remove(selectedOre.Key);
-                    MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
-                    ExpRatioDataGrid.Items.Refresh();
+                    var selectedOre = (KeyValuePair<string, double>)ExpRatioDataGrid.SelectedItem;
+                    result = MessageBox.Show($"Are you sure you want to delete the ore '{selectedOre.Key}'?", "Delete Ore", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        Plugin.MinerConfig.ExpRatio.Remove(selectedOre.Key);
+                        MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
+                        ExpRatioDataGrid.Items.Refresh();
+                    }
                 }
+                else
+                {
+                    result = MessageBox.Show($"Are you sure you want to delete the selected {ExpRatioDataGrid.SelectedItems.Count} ores?", "Delete Ores", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        foreach (var selectedOre in ExpRatioDataGrid.SelectedItems.Cast<KeyValuePair<string, double>>().ToList())
+                        {
+                            Plugin.MinerConfig.ExpRatio.Remove(selectedOre.Key);
+                        }
+                        MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
+                        ExpRatioDataGrid.Items.Refresh();
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select at least one ore to delete.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
