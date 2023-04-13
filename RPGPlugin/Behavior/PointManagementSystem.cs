@@ -1,70 +1,64 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
-using Sandbox.Game.Weapons;
-using Sandbox.ModAPI;
-using VRage.ModAPI;
+using RPGPlugin.Utils;
+using VRage.Collections;
+using VRage.Network;
 
 namespace RPGPlugin.PointManagementSystem
 {
-    public class PointManager
+    public class PointManager : IDisposable
     {
         // Miner Reward Rates
-        private Dictionary<string, double> ExpRatio;
-
-        // Using a flat rate system until later.....
-
-        // Add any custom ore subtype definitions needed here
-
-        public PointManager()
-        {
-            // Not a good idea to load the file in the constructor, if it fails the whole process fails.
-        }
+        private static Dictionary<string, double> ExpRatio;
+        private Timer _QueueTimer;
+        public readonly MyConcurrentQueue<CollectedOre> _ProcessQueue = new MyConcurrentQueue<CollectedOre>();
+        private static bool _queueInProcess;
 
         public Task Init()
         { 
             ExpRatio = MinerConfig.LoadMinerConfig().ExpRatio;
+            _QueueTimer = new Timer(Callback, null, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(5));
             return Task.CompletedTask; // Easy way to await and not block any important threads during IO operation.
         }
 
-        // MINING SECTION
-        public async void ShipDrillCollected(string entityname, long entityid, string gridname, long gridid, string typeid, string subtypeid, float amount)
+        private async void Callback(Object state)
         {
-            await ShipDrillCollectedAsync(entityname, entityid, gridname, gridid, typeid, subtypeid, amount);
-        }
-
-        private async Task ShipDrillCollectedAsync(string entityname, long entityid, string gridname, long gridid, string typeid, string subtypeid, float amount)
-        {
-            IMyEntity Entity = MyAPIGateway.Entities.GetEntityById(entityid);
+            // We can continue to store the data but dont process until ready.
+            if (!Roles.Instance.DelayFinished) return;
             
-            // Get Grid
-            var ShipDrill = Entity as MyShipDrill;
-            if (ShipDrill == null) return;
-            
-            // Had thought to search for the pilot but searching every block on every grid every 10 ticks is not nice to the server.. 
-            // So rewarding the grid owner is the easiest way to go for now.
-            
-            if (ShipDrill.OwnerId == 0)
+            _queueInProcess = true;
+            while (_ProcessQueue.Count > 0)
             {
-                Roles.Log.Error("Grid is mining but owner is unknown.  Unable to assign points.");
-                return;
+                if (!_ProcessQueue.TryDequeue(out CollectedOre queueData)) continue;
+                
+                // If player data no loaded yet, dont crash
+                if (!Roles.PlayerManagers.ContainsKey(queueData.ownerID)) continue;
+                
+                // If not a miner, no points given.
+                if (Roles.PlayerManagers[queueData.ownerID].GetRole() != PlayerManager.FromRoles.Miner) return;
+            
+                // 0.5 was still crazy high lol.  // This will be removed and appropriate values used in the exp chart.
+                double points = 0.03 * ExpRatio[queueData.subType];
+            
+                await Roles.PlayerManagers[queueData.ownerID].AddMinerExp(points);  
+                // Tested with 0.3 and that was allot of points very fast with 13 drills!!
+                // Thousands of points in 1 minute.  So will need to be very small numbers!!!
             }
-            
-            // If not a miner, no points given.
-            if (Roles.PlayerManagers[ShipDrill.OwnerId].GetRole() != PlayerManager.FromRoles.Miner) return;
-            
-            // Calculate exp points.   !!!! Amount is not given, will need to look for another way or patch.
-            // 0.5 was still crazy high lol.  
-            double points = 0.03 * ExpRatio[subtypeid];
 
-            // Mining only stone but game reports Ice and other ores being mined... need to research why this is happening.
-            if (subtypeid != "Stone")
-                Roles.Log.Info("Reward exp for mining " + subtypeid);
-            
-            await Roles.PlayerManagers[ShipDrill.OwnerId].AddMinerExp(points);  
-            // Tested with 0.3 and that was allot of points very fast with 13 drills!!
-            // Thousands of points in 1 minute.  So will need to be very small numbers!!!
+            _queueInProcess = false;
         }
         
         // WARRIOR SECTION
+
+        
+        
+        
+        
+        public void Dispose()
+        {
+            _QueueTimer?.Dispose();
+        }
     }
 }

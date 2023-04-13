@@ -8,11 +8,9 @@ namespace RPGPlugin
     {
 
         private List<string> _RolesList = new List<string> { "Miner", "Hunter", "Warrior" };
-        private ushort _expMiningHandlerId = 54546;
-        private ObservableCollection<string> _minerCustomSubTypes = new ObservableCollection<string>();
+        private bool _broadcastLevelUp = true;
+        
+        public bool BroadcastLevelUp { get => _broadcastLevelUp; set => SetValue(ref _broadcastLevelUp, value); }
 
-        public ushort ExpMiningHandlerId { get => _expMiningHandlerId; set => SetValue(ref _expMiningHandlerId, value); }
-
-        public ObservableCollection<string> MinerCustomSubTypes { get => _minerCustomSubTypes; set => SetValue(ref _minerCustomSubTypes, value); }
     }
 }
