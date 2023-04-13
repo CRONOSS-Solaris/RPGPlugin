@@ -94,6 +94,10 @@ namespace RPGPlugin
                     ExpRatioDataGrid.Items.Refresh();
                 }
             }
+            else
+            {
+                MessageBox.Show("Please select an ore to edit.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void DeleteOreButton_Click(object sender, RoutedEventArgs e)
