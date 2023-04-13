@@ -1,9 +1,10 @@
 ﻿using System;
-using System.Globalization;
 using System.Threading.Tasks;
 using Sandbox.Game;
 using VRageMath;
 using RPGPlugin.Utils;
+using Sandbox.Game.World;
+using Sandbox.ModAPI;
 
 namespace RPGPlugin
 {
@@ -42,24 +43,26 @@ namespace RPGPlugin
         
         public Task AddMinerExp(double exp)
         {
-            /* level  2    requires  67 points
-               level  20   requires  668 points
-               level  50   requires  1,670 points
-               level  100  requires  3,340 points
-               never ending levels!  Players need bragging rights, even miners!
-             */
             double expForLevelUp = (_PlayerData.MinerLevel * (32.4 + _PlayerData.MinerLevel));
 
             if (_PlayerData.MinerExp + exp >= expForLevelUp)
             {
                 _PlayerData.MinerLevel++;
                 _PlayerData.MinerExp = Math.Round(_PlayerData.MinerExp + exp) - expForLevelUp;
-                MyVisualScriptLogicProvider.SendChatMessageColored("You have leveled up!!!", Color.Green, "Roles", _PlayerData.PlayerID);
+                
+                if (Roles.Instance.Config.BroadcastLevelUp)
+                {
+                    string name = MySession.Static.Players.TryGetIdentityNameFromSteamId(_PlayerData.SteamId);
+                    Roles.ChatManager.SendMessageAsOther("Roles Manager", $"{name} is now a level {_PlayerData.MinerLevel} Miner!", Color.ForestGreen);
+                }
+                else
+                {
+                    MyVisualScriptLogicProvider.SendChatMessageColored("You have leveled up!!!", Color.Green, "Roles", _PlayerData.PlayerID);
+                }
             }
             else
             {
                 _PlayerData.MinerExp += exp;
-                Roles.Log.Warn($"Your EXP = {_PlayerData.MinerExp.ToString(CultureInfo.InvariantCulture)}");
             }
 
             return Task.CompletedTask;
@@ -67,7 +70,8 @@ namespace RPGPlugin
 
         public int ExpToLevelUp()
         {
-            int expForLevelUp = (int)Math.Round(_PlayerData.MinerLevel * (32.4 + _PlayerData.MinerLevel));
+            int expForLevelUp = (int)Math.Round(_PlayerData.MinerLevel / 3.5 * 10000);
+            
             return (int)Math.Round(expForLevelUp - _PlayerData.MinerExp);
         }
     }

@@ -20,6 +20,11 @@ namespace RPGPlugin
                 return;
             }
 
+            if (!Roles.Instance.DelayFinished)
+            {
+                Context.Respond("Your profile has not been loaded yet.  Your actions are still logged and points applied when your profile is loaded.  Check again in a few minutes.");
+            }
+
             if (!Roles.PlayerManagers.ContainsKey(Context.Player.IdentityId))
             {
                 Context.Respond("Problem loading your profile.");

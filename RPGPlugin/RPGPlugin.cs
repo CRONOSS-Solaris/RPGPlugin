@@ -16,6 +16,7 @@ using Torch.API;
 using Torch.API.Managers;
 using Torch.API.Plugins;
 using Torch.API.Session;
+using Torch.Managers.PatchManager;
 using Torch.Session;
 
 namespace RPGPlugin
@@ -27,8 +28,10 @@ namespace RPGPlugin
         private static Timer AutoSaver = new Timer();
         public PointManager ExpManager = new PointManager();
         private static Timer DelayStart = new Timer();
-        public static object _FILELOCK = new object();
-        private bool DelayFinished = false;
+        public bool DelayFinished;
+        public PatchManager patchManager;
+        public PatchContext patchContext;
+        public static IChatManagerServer ChatManager => Instance.Torch.CurrentSession.Managers.GetManager<IChatManagerServer>();
 
         // Instead of writing to their player data file every tick they mine, track and save
         // all the data periodically.
@@ -57,8 +60,10 @@ namespace RPGPlugin
                 sessionManager.SessionStateChanged += SessionChanged;
             else
                 Log.Warn("No session manager loaded!");
-            ExpManager.Init(); // Load the config files
 
+            patchManager = DependencyProviderExtensions.GetManager<PatchManager>(torch.Managers);
+            patchContext = this.patchManager.AcquireContext();
+            Patches.DrillPatch.Patch(patchContext);
             Save();
         }
         
@@ -72,21 +77,22 @@ namespace RPGPlugin
                     DelayStart.Elapsed += DelayStartActivate;
                     DelayStart.Start();
                     Log.Info("Delay Start Timer Active!"); // DEBUG
+                    
                     break;
 
                 case TorchSessionState.Unloading:
                     Log.Info("Session Unloading!");
                     MyVisualScriptLogicProvider.PlayerConnected -= LoadPlayerData;
                     MyVisualScriptLogicProvider.PlayerDisconnected -= PlayerDisconnected;
-                    MyVisualScriptLogicProvider.ShipDrillCollected -= ExpManager.ShipDrillCollected;
                     SaveAllPlayersForShutDown();
                     DelayStart.Stop();
                     AutoSaver.Stop();
+                    
                     break;
             }
         }
 
-        private void DelayStartActivate(object sender, ElapsedEventArgs e)
+        private async void DelayStartActivate(object sender, ElapsedEventArgs e)
         {
             // This is because on server restart, players who rush to connect will trigger connect events
             // before the server is properly ready and will pass playerid of 0.  This is a standard problem
@@ -98,12 +104,13 @@ namespace RPGPlugin
             MyVisualScriptLogicProvider.PlayerConnected += LoadPlayerData;
             // When a player disconnects, this will save and unload their data and update online player list.
             MyVisualScriptLogicProvider.PlayerDisconnected += PlayerDisconnected;
-            MyVisualScriptLogicProvider.ShipDrillCollected += ExpManager.ShipDrillCollected;
             // Not the connect listeners are active, we can pick up the current logged in players and set them up.
             List<MyPlayer> onlinePlayers = Sync.Players.GetOnlinePlayers().ToList();
             foreach (MyPlayer player in onlinePlayers)
             {
+                await ExpManager.Init(); 
                 LoadPlayerData(player.Identity.IdentityId);
+                
                 Log.Info("Role Data Active For " + player.Identity.DisplayName); // DEBUG
             }
 
