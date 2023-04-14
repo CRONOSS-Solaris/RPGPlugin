@@ -184,7 +184,8 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Resource Include="comingsoon.png" />
-    <Resource Include="Donate-Button.png" />
+    <Resource Include="Image\Donate-Button.png" />
+    <Resource Include="Image\support.png" />
     <Content Include="manifest.xml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
