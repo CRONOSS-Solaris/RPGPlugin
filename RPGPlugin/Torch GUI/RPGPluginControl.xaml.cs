@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Xml.Linq;
 
 namespace RPGPlugin
 {
@@ -13,6 +16,7 @@ namespace RPGPlugin
         private RolesControl()
         {
             InitializeComponent();
+
         }
 
         public RolesControl(Roles plugin) : this()
@@ -70,7 +74,7 @@ namespace RPGPlugin
                 var selectedOre = (KeyValuePair<string, double>)ExpRatioDataGrid.SelectedItem;
                 var editOreWindow = new EditOreWindow
                 {
-                    Title = "Edit ore"
+                    Title = "RPGPLUGIN - EDIT ORE"
                 };
                 editOreWindow.SetOreName(selectedOre.Key);
                 editOreWindow.SetExpPerOre(selectedOre.Value);
@@ -140,5 +144,16 @@ namespace RPGPlugin
                 MessageBox.Show("Please select at least one ore to delete.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        private void SupportButton_Click(object sender, RoutedEventArgs e)
+        {
+            string discordInviteLink = "https://discord.com/invite/TqbCaHu7wr";
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = discordInviteLink,
+                UseShellExecute = true
+            });
+        }
+
     }
 }
