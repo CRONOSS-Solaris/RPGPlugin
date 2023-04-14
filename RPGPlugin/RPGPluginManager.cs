@@ -43,12 +43,11 @@ namespace RPGPlugin
         
         public Task AddMinerExp(double exp)
         {
-            double expForLevelUp = (_PlayerData.MinerLevel * (32.4 + _PlayerData.MinerLevel));
 
-            if (_PlayerData.MinerExp + exp >= expForLevelUp)
+            if (_PlayerData.MinerExp + exp >= ExpToLevelUp())
             {
                 _PlayerData.MinerLevel++;
-                _PlayerData.MinerExp = Math.Round(_PlayerData.MinerExp + exp) - expForLevelUp;
+                _PlayerData.MinerExp = Math.Round(_PlayerData.MinerExp + exp) - ExpToLevelUp();
                 
                 if (Roles.Instance.Config.BroadcastLevelUp)
                 {
