@@ -1,29 +1,28 @@
-﻿using System;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using RPGPlugin.Utils;
-using VRage.Collections;
-using VRage.Network;
 
 namespace RPGPlugin.PointManagementSystem
 {
-    public class PointManager : IDisposable
+    public static class PointManager
     {
         // Miner Reward Rates
         private static Dictionary<string, double> ExpRatio;
-        private Timer _QueueTimer;
-        public readonly MyConcurrentQueue<CollectedOre> _ProcessQueue = new MyConcurrentQueue<CollectedOre>();
+        private static Timer _QueueTimer;
+        public static ConcurrentQueue<CollectedOre> _ProcessQueue = new ConcurrentQueue<CollectedOre>();
         private static bool _queueInProcess;
 
-        public Task Init()
+        public static Task Start()
         { 
             ExpRatio = MinerConfig.LoadMinerConfig().ExpRatio;
-            _QueueTimer = new Timer(Callback, null, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(5));
+            _QueueTimer = new Timer(Callback, null, 30, 5000);
+            Roles.Log.Warn("_QueueTimer will start in 30 seconds.");
             return Task.CompletedTask; // Easy way to await and not block any important threads during IO operation.
         }
 
-        private async void Callback(Object state)
+        private static async void Callback(object state)
         {
             // We can continue to store the data but dont process until ready.
             if (!Roles.Instance.DelayFinished) return;
@@ -84,21 +83,20 @@ namespace RPGPlugin.PointManagementSystem
         //    await Roles.PlayerManagers[warriorID].AddWarriorExp(expPerDestroyedBlock);
         //}
 
-//Add an event or modify an existing event that is triggered when a player kills another player. 
+        //Add an event or modify an existing event that is triggered when a player kills another player. 
 
-//Then call AddWarriorExpForKill with the player ID as an argument.
+        //Then call AddWarriorExpForKill with the player ID as an argument.
 
-//Add an event or modify an existing event that is triggered when a player destroys an enemy player's structure block. Then call 
+        //Add an event or modify an existing event that is triggered when a player destroys an enemy player's structure block. Then call 
 
-//AddWarriorExpForDestroyedBlock with the player ID and the type of block destroyed as arguments.
+        //AddWarriorExpForDestroyedBlock with the player ID and the type of block destroyed as arguments.
 
-//Make sure you load the hunter's configuration (WarriorConfig) similar to the miner's configuration (MinerConfig). You can do this by adding
+        //Make sure you load the hunter's configuration (WarriorConfig) similar to the miner's configuration (MinerConfig). You can do this by adding
 
-//WarriorConfig.LoadWarriorConfig() in the appropriate place, just as you did for MinerConfig.LoadMinerConfig().
-
-        public void Dispose()
-        {
-            _QueueTimer?.Dispose();
-        }
+        //WarriorConfig.LoadWarriorConfig() in the appropriate place, just as you did for MinerConfig.LoadMinerConfig().
+       
+        
+        
+        
     }
 }

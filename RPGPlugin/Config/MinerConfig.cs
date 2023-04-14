@@ -1,28 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Torch;
 
 namespace RPGPlugin
 {
-    // Needs file locking mechanism at some point.  If user has files open in another app to edit
-    // and the files are locked by the app, this will fail and return null which should be a 
-    // last resort.  
-    
     public class MinerConfig : ViewModel
     {
         // Definition of the ExpRatio property, which stores experience point values for individual minerals
         private Dictionary<string, double> _expRatio;
-        
-        // This could be a configurable setting but for now this works.
+        private static readonly object _lock = new object();
+        private static TimeSpan _lockTimeOut = TimeSpan.FromMilliseconds(5000);
         private const string storagePath = "Instance/RPGPlugin/";
+        private static string configFilePath = Path.Combine(storagePath, "MinerConfig.json");
         
         private static MinerConfig defaultConfig = new MinerConfig
         {
             ExpRatio = new Dictionary<string, double>
             {
-                ["Stone"] = 0.13,
+                ["Stone"] = 0.0013,
                 ["Silicon"] = 0.12,
                 ["Iron"] = 0.13,
                 ["Nickel"] = 0.13,
@@ -45,62 +44,97 @@ namespace RPGPlugin
         // Method used to load the configuration file
         public static MinerConfig LoadMinerConfig()
         {
-            string configFilePath = Path.Combine(storagePath, "MinerConfig.json");
-
-            if (!Directory.Exists(storagePath))
-                Directory.CreateDirectory(storagePath);
-
-            if (!File.Exists(configFilePath))
+            bool lockTaken = false;
+            try
             {
-                // Save the default configuration and return it
-                SaveMinerConfig(defaultConfig);
-                return defaultConfig;
-            }
-            else
-            {
-                // If the file exists, load it
-                try
+                Monitor.TryEnter(_lock, _lockTimeOut, ref lockTaken);
+                if (lockTaken)
                 {
-                    string jsonData = File.ReadAllText(configFilePath);
-                    return JsonConvert.DeserializeObject<MinerConfig>(jsonData);
+                    if (!Directory.Exists(storagePath))
+                        Directory.CreateDirectory(storagePath);
+
+                    if (!File.Exists(configFilePath))
+                    {
+                        // Return the default, no point saving a copy of defaultConfig.  Plus in the lock it cant be saved.
+                        return defaultConfig;
+                    }
+                    else
+                    {
+                        // If the file exists, load it
+
+                        try
+                        {
+                            string jsonData = File.ReadAllText(configFilePath);
+                            return JsonConvert.DeserializeObject<MinerConfig>(jsonData);
+                        }
+                        catch (Exception e)
+                        {
+                            File.Move(configFilePath,
+                                Path.Combine(storagePath, "MinerConfig_ERROR.json")); // Renames the file.
+                            Roles.Log.Error($"There was an issue loading the MinerConfig.json configuration file.  The file has renamed too MinerConfig_ERROR.json and a clean default Miner configuration file created.");
+                            Roles.Log.Error(e);
+                            SaveMinerConfig(defaultConfig);
+
+                            return defaultConfig;
+                        }
+                    }
                 }
-                catch (Exception e)
+                else
                 {
-                    // In case of an error while loading the file, log it and return a null value
-                    
-                    // Instead of returning null (always avoid null data for players when possible)
-                    // We can return a new configuration file.  If the user edits the file and breaks
-                    // json formatting or the file is corrupt, we end up here.  We can setup specific
-                    // exception catches for better handling also.
-                    
-                    File.Move(configFilePath,Path.Combine(storagePath, "MinerConfig_ERROR.json")); // Renames the file.
-                    Roles.Log.Error($"There was an issue loading the MinerConfig.json configuration file.  The file has renamed too MinerConfig_ERROR.json and a clean default Miner configuration file created.");
-                    SaveMinerConfig(defaultConfig);
-                    Roles.Log.Warn(e);
-                    
+                    // Unable to get lock and load data!
+                    Roles.Log.Error(
+                        $"Unable to load MinerConfig.json, {configFilePath} is locked by another process. Using default values.");
                     return defaultConfig;
                 }
             }
+            catch (Exception e)
+            {
+                Roles.Log.Error(e);
+                return defaultConfig;
+            }
+            finally
+            {
+                if (lockTaken)
+                    Monitor.Exit(_lock);
+            }
+            
         }
 
         // Method used to save the configuration file
-        public static void SaveMinerConfig(MinerConfig config)
+        public static Task<bool> SaveMinerConfig(MinerConfig config)
         {
-            string configFilePath = Path.Combine(storagePath, "MinerConfig.json");
-            
-            if (!Directory.Exists(storagePath))
-                Directory.CreateDirectory(storagePath);
-            
+            // Task instead of void, run IO process in await.
+            // return bool.  Doesnt need to be used but can be if needed.
+            bool lockTaken = false;
+            Monitor.TryEnter(_lock, _lockTimeOut, ref lockTaken);
             try
             {
-                // Serialize the configuration to JSON and save it
-                string jsonData = JsonConvert.SerializeObject(config, Formatting.Indented);
-                File.WriteAllText(configFilePath, jsonData);
+                if (!Directory.Exists(storagePath))
+                    Directory.CreateDirectory(storagePath);
+                
+                try
+                {
+                    // Serialize the configuration to JSON and save it
+                    string jsonData = JsonConvert.SerializeObject(config, Formatting.Indented);
+                    File.WriteAllText(configFilePath, jsonData);
+                    return Task.FromResult(true);
+                }
+                catch (Exception e)
+                {
+                    // In case of an error while saving the file, log it
+                    Roles.Log.Warn(e);
+                    return Task.FromResult(false);
+                }
             }
             catch (Exception e)
             {
-                // In case of an error while saving the file, log it
-                Roles.Log.Warn(e);
+                Roles.Log.Error(e);
+                return Task.FromResult(false);
+            }
+            finally
+            {
+                if (lockTaken)
+                    Monitor.Exit(_lock);
             }
         }
     }
