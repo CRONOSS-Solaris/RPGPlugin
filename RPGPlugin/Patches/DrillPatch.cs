@@ -2,6 +2,7 @@
 using System.Reflection;
 using RPGPlugin.Utils;
 using Sandbox.Game.Entities;
+using Sandbox.Game.Screens.ViewModels;
 using Sandbox.Game.Weapons;
 using Torch.Managers.PatchManager;
 using Torch.Utils;
@@ -32,12 +33,17 @@ namespace RPGPlugin.Patches
             MyCubeBlock drill = _getEntity(__instance) as MyCubeBlock;
             if (drill == null) return;
             
-            Roles.Instance.ExpManager._ProcessQueue.Enqueue(new CollectedOre
+             PointManagementSystem.PointManager._ProcessQueue.Enqueue(new CollectedOre
             {
                 ownerID = drill.OwnerId,
                 subType = material.MinedOre,
                 amount = removedAmount
             });
+            
+        }
+
+        private static void MyTest(CollectedOre ore)
+        {
             
         }
     }

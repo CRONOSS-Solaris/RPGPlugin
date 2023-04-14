@@ -1,5 +1,6 @@
 ﻿using NLog;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Timers;
 using System.Windows.Controls;
 using System.Xml.Serialization;
 using RPGPlugin.PointManagementSystem;
-using RPGPlugin.Utils;
+using Sandbox.Engine.Multiplayer;
 using Sandbox.Game;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.World;
@@ -18,15 +19,15 @@ using Torch.API.Plugins;
 using Torch.API.Session;
 using Torch.Managers.PatchManager;
 using Torch.Session;
+using VRage.GameServices;
 
 namespace RPGPlugin
 {
     public class Roles : TorchPluginBase, IWpfPlugin
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        public static Dictionary<long, PlayerManager> PlayerManagers = new Dictionary<long, PlayerManager>();
+        public static ConcurrentDictionary<long, PlayerManager> PlayerManagers = new ConcurrentDictionary<long, PlayerManager>();
         private static Timer AutoSaver = new Timer();
-        public PointManager ExpManager = new PointManager();
         private static Timer DelayStart = new Timer();
         public bool DelayFinished;
         public PatchManager patchManager;
@@ -62,7 +63,7 @@ namespace RPGPlugin
                 Log.Warn("No session manager loaded!");
 
             patchManager = DependencyProviderExtensions.GetManager<PatchManager>(torch.Managers);
-            patchContext = this.patchManager.AcquireContext();
+            patchContext = patchManager.AcquireContext();
             Patches.DrillPatch.Patch(patchContext);
             Save();
         }
@@ -82,8 +83,8 @@ namespace RPGPlugin
 
                 case TorchSessionState.Unloading:
                     Log.Info("Session Unloading!");
-                    MyVisualScriptLogicProvider.PlayerConnected -= LoadPlayerData;
-                    MyVisualScriptLogicProvider.PlayerDisconnected -= PlayerDisconnected;
+                    MyMultiplayer.Static.ClientJoined -= LoadPlayerData;
+                    MyMultiplayer.Static.ClientLeft -= PlayerDisconnected;
                     SaveAllPlayersForShutDown();
                     DelayStart.Stop();
                     AutoSaver.Stop();
@@ -99,17 +100,20 @@ namespace RPGPlugin
             // for both plugins and mods. Welcome to the wonderful world of Keen :=)
             Log.Info("Role DelayStart activated"); // DEBUG 
             DelayStart.Stop();
-            DelayStart.Dispose(); // No longer need it, clean it up now.
-            // When a player spawns their ingame data is loaded, now we load their data and update online player list.
-            MyVisualScriptLogicProvider.PlayerConnected += LoadPlayerData;
+            DelayStart.Dispose();
+             // DelayStart.Dispose();No longer need it, clean it up now.
+             
+            // When a player spawns their in-game data is loaded, now we load their data and update online player list.
+            MyMultiplayer.Static.ClientJoined += LoadPlayerData;
             // When a player disconnects, this will save and unload their data and update online player list.
-            MyVisualScriptLogicProvider.PlayerDisconnected += PlayerDisconnected;
+            MyMultiplayer.Static.ClientLeft += PlayerDisconnected;
             // Not the connect listeners are active, we can pick up the current logged in players and set them up.
             List<MyPlayer> onlinePlayers = Sync.Players.GetOnlinePlayers().ToList();
+            
             foreach (MyPlayer player in onlinePlayers)
             {
-                await ExpManager.Init(); 
-                LoadPlayerData(player.Identity.IdentityId);
+                await PointManager.Start(); 
+                LoadPlayerData(player.Id.SteamId, "something here? player name?");
                 
                 Log.Info("Role Data Active For " + player.Identity.DisplayName); // DEBUG
             }
@@ -119,16 +123,18 @@ namespace RPGPlugin
             AutoSaver.Start();
         }
 
-        private async void PlayerDisconnected(long playerId)
+        private async void PlayerDisconnected(ulong steamID, MyChatMemberStateChangeEnum myChatMemberStateChangeEnum)
         {
             // Unload them from the system, free up resources.
-            if (!PlayerManagers.ContainsKey(playerId))
+            MyPlayer player = MySession.Static.Players.TryGetPlayerBySteamId(steamID);
+            
+            if (!PlayerManagers.ContainsKey(player.Identity.IdentityId))
             {
-                Log.Error($"Unable to save profile for player [IdentityID:{playerId}], it was probably not loaded.");
+                Log.Error($"Unable to save profile for player [IdentityID:{player.Identity.IdentityId}], it was probably not loaded.");
                 return;
             }
-            await PlayerManagers[playerId].SavePlayerData();
-            PlayerManagers.Remove(playerId);
+            await PlayerManagers[player.Identity.IdentityId].SavePlayerData();
+            PlayerManagers.Remove(player.Identity.IdentityId);
         }
 
         private async void SaveAllPlayersForShutDown()
@@ -141,20 +147,14 @@ namespace RPGPlugin
             PlayerManagers.Clear();
         }
 
-        private void LoadPlayerData(long playerId)
+        private void LoadPlayerData(ulong steamID, string s)
         {
-            ulong SteamID = GetPlayerSteamID(playerId);
+            MyPlayer player = MySession.Static.Players.TryGetPlayerBySteamId(steamID);
             PlayerManager roleManager = new PlayerManager();
-            roleManager.InitAsync(SteamID);
-            PlayerManagers.Add(playerId, roleManager);
-            MyPlayer player = MySession.Static.Players.TryGetPlayerBySteamId(SteamID);
+            roleManager.InitAsync(steamID);
+            PlayerManagers.TryAdd(player.Identity.IdentityId, roleManager);
             if (!DelayFinished)
-                OnlinePlayersList.Add(SteamID, player);
-        }
-
-        private ulong GetPlayerSteamID(long playerId)
-        {
-            return MySession.Static.Players.TryGetSteamId(playerId);
+                OnlinePlayersList.Add(steamID, player);
         }
 
         private void SetupConfig()

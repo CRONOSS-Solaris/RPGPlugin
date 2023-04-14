@@ -67,7 +67,7 @@ namespace RPGPlugin
         }
 
 
-        private void EditOreButton_Click(object sender, RoutedEventArgs e)
+        private async void EditOreButton_Click(object sender, RoutedEventArgs e)
         {
             if (ExpRatioDataGrid.SelectedItem != null)
             {
@@ -85,6 +85,8 @@ namespace RPGPlugin
                     string editedOreName = editOreWindow.OreName;
                     double editedOreExp = editOreWindow.ExpPerOre;
 
+                    // Also not thread safe.  
+                    // Example: Removing values while exp is being calculated on another thread will crash the game.
                     if (selectedOre.Key != editedOreName)
                     {
                         if (!Plugin.MinerConfig.ExpRatio.ContainsKey(editedOreName))
@@ -99,7 +101,7 @@ namespace RPGPlugin
                     }
 
                     Plugin.MinerConfig.ExpRatio[editedOreName] = editedOreExp;
-                    MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
+                    await MinerConfig.SaveMinerConfig(Plugin.MinerConfig);  // No longer blocking UI thread on IO operation.
                     ExpRatioDataGrid.Items.Refresh();
                 }
             }
