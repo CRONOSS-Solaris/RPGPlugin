@@ -1,6 +1,10 @@
-﻿using System.Text;
+﻿using Sandbox.Game.World;
+using System.Text;
 using Torch.Commands;
 using Torch.Commands.Permissions;
+using Torch.Mod.Messages;
+using Torch.Mod;
+using VRage.Game;
 using VRage.Game.ModAPI;
 
 namespace RPGPlugin
@@ -8,6 +12,8 @@ namespace RPGPlugin
     [Category("r")]
     public class RolesCommands : CommandModule
     {
+
+
         public Roles Plugin => (Roles)Context.Plugin;
 
         [Command("setrole", "Set your role")]
@@ -63,14 +69,20 @@ namespace RPGPlugin
         [Permission(MyPromoteLevel.None)]
         public void ListRoles()
         {
-            StringBuilder reply = new StringBuilder();
-            reply.AppendLine("Available roles:");
-            reply.AppendLine("Miner - This role allows you to mine and gather resources more efficiently.");
-            reply.AppendLine("Hunter - This role increases your damage against animals and improves your tracking abilities.");
-            reply.AppendLine("Warrior - This role increases your damage against other players and gives you access to better weapons.");
+            if (Context.Player == null)
+            {
+                Context.Respond("This is a player command only.");
+                return;
+            }
 
-            Context.Respond(reply.ToString());
+            string message = "Miner - This role allows you to mine and gather resources more efficiently.\n" +
+                             "Hunter - This role increases your damage against animals and improves your tracking abilities.\n" +
+                             "Warrior - This role increases your damage against other players and gives you access to better weapons.";
+
+            Plugin.SendRoles((IMyPlayer)Context.Player, "Available roles:", message);
         }
+
+
 
         [Command("stats", "Displays current level and exp needed for next level.")]
         [Permission(MyPromoteLevel.None)]

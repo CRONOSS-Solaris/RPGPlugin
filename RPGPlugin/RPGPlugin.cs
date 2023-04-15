@@ -20,6 +20,9 @@ using Torch.API.Session;
 using Torch.Managers.PatchManager;
 using Torch.Session;
 using VRage.GameServices;
+using Torch.Mod.Messages;
+using Torch.Mod;
+using VRage.Game.ModAPI;
 
 namespace RPGPlugin
 {
@@ -156,6 +159,18 @@ namespace RPGPlugin
             if (!DelayFinished)
                 OnlinePlayersList.Add(steamID, player);
         }
+
+        // MOTD command style
+        public void SendRoles(IMyPlayer player, string header, string message)
+        {
+            long playerId = player.Identity.IdentityId;
+            ulong steamId = player.SteamUserId;
+
+            var msg = new DialogMessage("RPGPLUGIN", header, message);
+            ModCommunication.SendMessageTo(msg, steamId);
+        }
+
+
 
         private void SetupConfig()
         {
