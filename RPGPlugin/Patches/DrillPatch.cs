@@ -33,17 +33,12 @@ namespace RPGPlugin.Patches
             MyCubeBlock drill = _getEntity(__instance) as MyCubeBlock;
             if (drill == null) return;
             
-             PointManagementSystem.PointManager._ProcessQueue.Enqueue(new CollectedOre
+            Roles.Instance.PointsManager.MinerProtocol._ProcessQueue.Enqueue(new CollectedOre
             {
                 ownerID = drill.OwnerId,
                 subType = material.MinedOre,
                 amount = removedAmount
             });
-            
-        }
-
-        private static void MyTest(CollectedOre ore)
-        {
             
         }
     }

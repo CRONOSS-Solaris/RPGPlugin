@@ -75,17 +75,17 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Miner" Height="32" VerticalAlignment="Center" Style="{StaticResource TabItemStyle}" Margin="-2,0,-2,0">
+            <TabItem Header="Miner" Height="32" VerticalAlignment="Center" Style="{StaticResource TabItemStyle}" Margin="-2,0,-2,0" IsSelected="True">
                 <Grid>
                     <Button x:Name="EditOreButton" Content="EDIT" Style="{StaticResource ButtonStyle}" Margin="115,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Height="25" Grid.Column="0" Grid.Row="0" Click="EditOreButton_Click"/>
                     <Button x:Name="DeleteOreButton" Content="DELETE" Style="{StaticResource ButtonStyle}" Margin="195,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Height="25" Grid.Column="0" Grid.Row="0" Click="DeleteOreButton_Click"/>
 
                     <Button x:Name="AddNewOreButton" Content="ADD NEW ORE" Style="{StaticResource ButtonStyle}" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100" Height="25" Grid.Column="0" Grid.Row="0" Click="AddNewOreButton_Click" Background="DarkSlateGray"/>
 
-                    <DataGrid x:Name="ExpRatioDataGrid" ItemsSource="{Binding MinerConfig.ExpRatio}" AutoGenerateColumns="False" CellEditEnding="ExpRatioDataGrid_CellEditEnding" Height="372" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,40,0,0" Width="260">
+                    <DataGrid x:Name="ExpRatioDataGrid" ItemsSource="{Binding ExpRatio}" CanUserAddRows="False" SelectionMode="Single" AutoGenerateColumns="False" CellEditEnding="ExpRatioDataGrid_CellEditEnding" Height="372" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,40,0,0" Width="260">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Mineral" Binding="{Binding Key}" IsReadOnly="True" Width="*" />
-                            <DataGridTextColumn Header="Experience" Binding="{Binding Value}" Width="*" />
+                            <DataGridTextColumn Header="Mineral" Binding="{Binding Key, Mode=OneWay}" IsReadOnly="True" Width="*" />
+                            <DataGridTextColumn Header="Experience" Binding="{Binding Value, Mode=OneWay}" IsReadOnly="True" Width="*" />
                         </DataGrid.Columns>
                     </DataGrid>
 

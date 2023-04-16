@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Globalization;
+using System.Windows;
 
 namespace RPGPlugin
 {
@@ -16,7 +17,7 @@ namespace RPGPlugin
         {
             OreName = OreNameTextBox.Text;
 
-            if (double.TryParse(ExpPerOreTextBox.Text, out double expPerOre))
+            if (double.TryParse(ExpPerOreTextBox.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out double expPerOre))
             {
                 ExpPerOre = expPerOre;
                 DialogResult = true;
@@ -35,7 +36,7 @@ namespace RPGPlugin
 
         public void SetExpPerOre(double expPerOre)
         {
-            ExpPerOreTextBox.Text = expPerOre.ToString();
+            ExpPerOreTextBox.Text = expPerOre.ToString(CultureInfo.InvariantCulture);
         }
 
     }
