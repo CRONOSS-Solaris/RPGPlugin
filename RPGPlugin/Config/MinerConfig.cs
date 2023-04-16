@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using ConcurrentObservableCollections.ConcurrentObservableDictionary;
 using Newtonsoft.Json;
 
 namespace RPGPlugin
@@ -15,23 +15,23 @@ namespace RPGPlugin
         private static TimeSpan _lockTimeOut = TimeSpan.FromMilliseconds(5000);
         private const string storagePath = "Instance/RPGPlugin/";
         private static string configFilePath = Path.Combine(storagePath, "MinerConfig.json");
-        public ConcurrentObservableDictionary<string, double> ExpRatio = new ConcurrentObservableDictionary<string, double>();
+        public ObservableCollection<KeyValuePair<string, double>> ExpRatio = new ObservableCollection<KeyValuePair<string, double>>();
         
         private static MinerConfig defaultConfig = new MinerConfig
         {
-            ExpRatio = new ConcurrentObservableDictionary<string,double>
+            ExpRatio = new ObservableCollection<KeyValuePair<string, double>>
             {
-                ["Stone"] = 0.0013,
-                ["Silicon"] = 0.12,
-                ["Iron"] = 0.13,
-                ["Nickel"] = 0.13,
-                ["Cobalt"] = 0.18,
-                ["Magnesium"] = 0.24,
-                ["Silver"] = 0.15,
-                ["Gold"] = 0.25,
-                ["Platinum"] = 0.28,
-                ["Uranium"] = 0.30,
-                ["Ice"] = 0.135
+                new KeyValuePair<string, double>( "stone",     0.0013 ),
+                new KeyValuePair<string, double>( "Silicon",   0.12   ),
+                new KeyValuePair<string, double>( "Iron",      0.13   ),
+                new KeyValuePair<string, double>( "Nickel",    0.13   ),
+                new KeyValuePair<string, double>( "Cobalt",    0.18   ),
+                new KeyValuePair<string, double>( "Magnesium", 0.24   ),
+                new KeyValuePair<string, double>( "Silver",    0.15   ),
+                new KeyValuePair<string, double>( "Gold",      0.25   ),
+                new KeyValuePair<string, double>( "Platinum",  0.28   ),
+                new KeyValuePair<string, double>( "Uranium",   0.30   ),
+                new KeyValuePair<string, double>( "Ice",       0.135  )
             }
         };
 
@@ -97,17 +97,8 @@ namespace RPGPlugin
 
         private Task LoadSettings(MinerConfig config = null)
         {
-            if (config == null)
-            {
-                ExpRatio = defaultConfig.ExpRatio;
-            }
-            else
-            {
-                ExpRatio = config.ExpRatio;
-            }
-
+            ExpRatio = config == null ? defaultConfig.ExpRatio : config.ExpRatio;
             return Task.CompletedTask;
-            
         }
 
         // Method used to save the configuration file
