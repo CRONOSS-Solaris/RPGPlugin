@@ -25,7 +25,7 @@ namespace RPGPlugin
             }
             else
             {
-                MessageBox.Show("Exp per ore must be a number.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Exp per ore must be a number between 0.0 and .{double.MaxValue.ToString(CultureInfo.InvariantCulture)}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

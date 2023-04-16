@@ -71,7 +71,6 @@
                     </Button>
 
                     <Image Source="/RPGPlugin;component/Image/Donate-Button.png" Margin="0,0,10,10" MouseLeftButtonDown="Donate_Click" Stretch="Uniform" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="200" Height="69"/>
-
                 </Grid>
             </TabItem>
 
@@ -82,10 +81,12 @@
 
                     <Button x:Name="AddNewOreButton" Content="ADD NEW ORE" Style="{StaticResource ButtonStyle}" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100" Height="25" Grid.Column="0" Grid.Row="0" Click="AddNewOreButton_Click" Background="DarkSlateGray"/>
 
-                    <DataGrid x:Name="ExpRatioDataGrid" ItemsSource="{Binding ExpRatio}" CanUserAddRows="False" SelectionMode="Single" AutoGenerateColumns="False" CellEditEnding="ExpRatioDataGrid_CellEditEnding" Height="372" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,40,0,0" Width="260">
+                    <DataGrid Name="ExpRatioDataGrid" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single"
+                              Height="372" HorizontalAlignment="Left" VerticalAlignment="Center" AutoGenerateColumns="False"
+                              Margin="10,40,0,0" Width="260" AlternatingRowBackground="Snow" >
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Mineral" Binding="{Binding Key, Mode=OneWay}" IsReadOnly="True" Width="*" />
-                            <DataGridTextColumn Header="Experience" Binding="{Binding Value, Mode=OneWay}" IsReadOnly="True" Width="*" />
+                            <DataGridTextColumn Header="Mineral" Binding="{Binding Path=Key}" IsReadOnly="True" Width="*"  />
+                            <DataGridTextColumn Header="Experience" Binding="{Binding Path=Value}" IsReadOnly="True" Width="*"  />
                         </DataGrid.Columns>
                     </DataGrid>
 
