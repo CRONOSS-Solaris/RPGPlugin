@@ -1,29 +1,41 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
-//using Torch;
+﻿using System;
+using System.IO;
+using ConcurrentObservableCollections.ConcurrentObservableDictionary;
 
-//namespace RPGPlugin
-//{
-//    public class WarriorConfig : ViewModel
-//    {
-//        public Dictionary<string, double> ExpRatio { get; set; }
-//        public double ExpPerKill { get; set; }
-//        public double ExpPerDestroyedBlock { get; set; }
+namespace RPGPlugin
+{
+    public class WarriorConfig
+    {
+        public ConcurrentObservableDictionary<string, double> ExpRatio { get; set; }
+        private static readonly object _lock = new object();
+        private static TimeSpan _lockTimeOut = TimeSpan.FromMilliseconds(5000);
+        private const string storagePath = "Instance/RPGPlugin/";
+        private static string configFilePath = Path.Combine(storagePath, "WarriorConfig.json");
+        
+        public double ExpPerKill { get; set; }
+        public double ExpPerDestroyedBlock { get; set; }
 
-//        public WarriorConfig()
-//        {
-//            ExpRatio = new Dictionary<string, double>
-//            {
-//              { "Player", 100.0 }, // Example of experience value for killing a player
-//              { "SmallBlock", 2.0 }, // Example of experience value for destroying a small block
-//              { "LargeBlock", 10.0 } // Example of experience value for destroying a large block
-//            };
+        public WarriorConfig() { }
 
-//            ExpPerKill = 100.0;
-//            ExpPerDestroyedBlock = 10.0;
-//        }
-//    }
-//}
+        private static WarriorConfig defaultConfig = new WarriorConfig
+        {
+            ExpRatio = new ConcurrentObservableDictionary<string, double>
+            {
+                ["Player"] = 100,
+                ["SmallBlock"] = 2,
+                ["LargeBlock"] = 10   
+            }
+        };
+
+        public void Init()
+        {
+            ExpPerKill = 100.0;
+            ExpPerDestroyedBlock = 10.0;
+        }
+        
+        public void Start()
+        {
+            
+        }
+    }
+}

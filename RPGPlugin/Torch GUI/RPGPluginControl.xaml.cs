@@ -1,47 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Xml.Linq;
+using ConcurrentObservableCollections.ConcurrentObservableDictionary;
 
 namespace RPGPlugin
 {
     public partial class RolesControl : UserControl
     {
         private Roles Plugin { get; }
-
+        public ConcurrentObservableDictionary<string, double> ExpRatio
+        {
+            get => Plugin.minerConfig.ExpRatio;
+            set => Plugin.minerConfig.ExpRatio = value;
+        }
+        
         private RolesControl()
         {
             InitializeComponent();
-
         }
 
         public RolesControl(Roles plugin) : this()
         {
             Plugin = plugin;
-            DataContext = plugin;
+            DataContext = this;
         }
 
         public void Donate_Click(object sender, RoutedEventArgs e)
         {
-            System.Diagnostics.Process.Start("https://www.paypal.com/donate/?hosted_button_id=HCV9695KQDMFN");
+            Process.Start("https://www.paypal.com/donate/?hosted_button_id=HCV9695KQDMFN");
         }
 
-        private void ExpRatioDataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        private async void ExpRatioDataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
         {
-            if (e.EditAction == DataGridEditAction.Commit)
-            {
-                var mineral = ((KeyValuePair<string, double>)e.Row.Item).Key;
-                var newValue = double.Parse(((TextBox)e.EditingElement).Text);
-                Plugin.MinerConfig.ExpRatio[mineral] = newValue;
-                MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
-            }
+            if (e.EditAction != DataGridEditAction.Commit) return;
+            
+            var mineral = ((KeyValuePair<string, double>)e.Row.Item).Key;
+            var newValue = double.Parse(((TextBox)e.EditingElement).Text);
+            Plugin.minerConfig.ExpRatio[mineral] = newValue;
+            await Roles.Instance.minerConfig.SaveMinerConfig();
         }
 
-        private void AddNewOreButton_Click(object sender, RoutedEventArgs e)
+        private async void AddNewOreButton_Click(object sender, RoutedEventArgs e)
         {
             var addOreWindow = new AddOreWindow();
 
@@ -51,9 +52,9 @@ namespace RPGPlugin
 
                 foreach (var newOre in newOres)
                 {
-                    if (!Plugin.MinerConfig.ExpRatio.ContainsKey(newOre.Key))
+                    if (!Plugin.minerConfig.ExpRatio.ContainsKey(newOre.Key))
                     {
-                        Plugin.MinerConfig.ExpRatio.Add(newOre.Key, newOre.Value);
+                        Plugin.minerConfig.ExpRatio.TryAdd(newOre.Key, newOre.Value);
                     }
                     else
                     {
@@ -61,7 +62,7 @@ namespace RPGPlugin
                     }
                 }
 
-                MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
+                await Roles.Instance.minerConfig.SaveMinerConfig();
                 ExpRatioDataGrid.Items.Refresh();
             }
         }
@@ -79,19 +80,16 @@ namespace RPGPlugin
                 editOreWindow.SetOreName(selectedOre.Key);
                 editOreWindow.SetExpPerOre(selectedOre.Value);
 
-
                 if (editOreWindow.ShowDialog() == true)
                 {
                     string editedOreName = editOreWindow.OreName;
                     double editedOreExp = editOreWindow.ExpPerOre;
 
-                    // Also not thread safe.  
-                    // Example: Removing values while exp is being calculated on another thread will crash the game.
                     if (selectedOre.Key != editedOreName)
                     {
-                        if (!Plugin.MinerConfig.ExpRatio.ContainsKey(editedOreName))
+                        if (!ExpRatio.ContainsKey(editedOreName))
                         {
-                            Plugin.MinerConfig.ExpRatio.Remove(selectedOre.Key);
+                            ExpRatio.Remove(selectedOre.Key);
                         }
                         else
                         {
@@ -100,8 +98,8 @@ namespace RPGPlugin
                         }
                     }
 
-                    Plugin.MinerConfig.ExpRatio[editedOreName] = editedOreExp;
-                    await MinerConfig.SaveMinerConfig(Plugin.MinerConfig);  // No longer blocking UI thread on IO operation.
+                    ExpRatio[editedOreName] = editedOreExp;
+                    await Roles.Instance.minerConfig.SaveMinerConfig();  // No longer blocking UI thread on IO operation.
                     ExpRatioDataGrid.Items.Refresh();
                 }
             }
@@ -111,7 +109,7 @@ namespace RPGPlugin
             }
         }
 
-        private void DeleteOreButton_Click(object sender, RoutedEventArgs e)
+        private async void DeleteOreButton_Click(object sender, RoutedEventArgs e)
         {
             if (ExpRatioDataGrid.SelectedItems.Count > 0)
             {
@@ -122,8 +120,8 @@ namespace RPGPlugin
                     result = MessageBox.Show($"Are you sure you want to delete the ore '{selectedOre.Key}'?", "Delete Ore", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                     if (result == MessageBoxResult.Yes)
                     {
-                        Plugin.MinerConfig.ExpRatio.Remove(selectedOre.Key);
-                        MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
+                        Plugin.minerConfig.ExpRatio.Remove(selectedOre.Key);
+                        await Roles.Instance.minerConfig.SaveMinerConfig();
                         ExpRatioDataGrid.Items.Refresh();
                     }
                 }
@@ -134,9 +132,9 @@ namespace RPGPlugin
                     {
                         foreach (var selectedOre in ExpRatioDataGrid.SelectedItems.Cast<KeyValuePair<string, double>>().ToList())
                         {
-                            Plugin.MinerConfig.ExpRatio.Remove(selectedOre.Key);
+                            Plugin.minerConfig.ExpRatio.Remove(selectedOre.Key);
                         }
-                        MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
+                        await Roles.Instance.minerConfig.SaveMinerConfig();
                         ExpRatioDataGrid.Items.Refresh();
                     }
                 }

@@ -4,13 +4,12 @@ using Sandbox.Game;
 using VRageMath;
 using RPGPlugin.Utils;
 using Sandbox.Game.World;
-using Sandbox.ModAPI;
 
 namespace RPGPlugin
 {
-    public class PlayerManager
+    public sealed class PlayerManager
     {
-        public PlayerData _PlayerData = new PlayerData();
+        private PlayerData _PlayerData { get; set; } = new PlayerData();
         
         public enum FromRoles {NoRole, Miner, Warrior}
 
@@ -30,6 +29,21 @@ namespace RPGPlugin
             return _PlayerData.SelectedRole;
         }
 
+        public int GetLevel()
+        {
+            return _PlayerData.MinerLevel;
+        }
+
+        public long GetPlayerID()
+        {
+            return _PlayerData.PlayerID;
+        }
+
+        public ulong GetSteamID()
+        {
+            return _PlayerData.SteamId;
+        }
+
         private async Task LoadPlayerData(ulong steamId)
         {
             _PlayerData = await FileManager.LoadPlayerData(steamId);
@@ -43,7 +57,6 @@ namespace RPGPlugin
         
         public Task AddMinerExp(double exp)
         {
-
             if (_PlayerData.MinerExp + exp >= ExpToLevelUp())
             {
                 _PlayerData.MinerLevel++;

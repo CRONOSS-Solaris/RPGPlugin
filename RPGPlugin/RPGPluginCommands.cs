@@ -1,10 +1,7 @@
-﻿using Sandbox.Game.World;
-using System.Text;
+﻿using System.Text;
+using RPGPlugin.Utils;
 using Torch.Commands;
 using Torch.Commands.Permissions;
-using Torch.Mod.Messages;
-using Torch.Mod;
-using VRage.Game;
 using VRage.Game.ModAPI;
 
 namespace RPGPlugin
@@ -12,8 +9,6 @@ namespace RPGPlugin
     [Category("r")]
     public class RolesCommands : CommandModule
     {
-
-
         public Roles Plugin => (Roles)Context.Plugin;
 
         [Command("setrole", "Set your role")]
@@ -41,19 +36,19 @@ namespace RPGPlugin
             switch (roleName.ToLower()) // No need for case sensitivity.
             {
                 case "norole":
-                    Roles.PlayerManagers[Context.Player.IdentityId]._PlayerData.SelectedRole = PlayerManager.FromRoles.NoRole;
+                    Roles.PlayerManagers[Context.Player.IdentityId].SetRole(PlayerManager.FromRoles.NoRole);
                     await Roles.PlayerManagers[Context.Player.IdentityId].SavePlayerData();
                     Context.Respond("Your role has been updated to [No Role]");
                     break;
 
                 case "miner":
-                    Roles.PlayerManagers[Context.Player.IdentityId]._PlayerData.SelectedRole = PlayerManager.FromRoles.Miner;
+                    Roles.PlayerManagers[Context.Player.IdentityId].SetRole(PlayerManager.FromRoles.Miner);
                     await Roles.PlayerManagers[Context.Player.IdentityId].SavePlayerData();
                     Context.Respond("Your role has been updated to [Miner]");
                     break;
 
                 case "warrior":
-                    Roles.PlayerManagers[Context.Player.IdentityId]._PlayerData.SelectedRole = PlayerManager.FromRoles.Warrior;
+                    Roles.PlayerManagers[Context.Player.IdentityId].SetRole(PlayerManager.FromRoles.Warrior);
                     await Roles.PlayerManagers[Context.Player.IdentityId].SavePlayerData();
                     Context.Respond("Your role has been updated to [Warrior]");
                     break;
@@ -75,11 +70,14 @@ namespace RPGPlugin
                 return;
             }
 
-            string message = "Miner - This role allows you to mine and gather resources more efficiently.\n" +
-                             "Hunter - This role increases your damage against animals and improves your tracking abilities.\n" +
-                             "Warrior - This role increases your damage against other players and gives you access to better weapons.";
+            StringBuilder message = new StringBuilder();
+            message.AppendLine("Miner - This role allows you to mine and gather resources more efficiently.");
+            message.AppendLine();
+            message.AppendLine("Hunter - This role increases your damage against animals and improves your tracking abilities.");
+            message.AppendLine();
+            message.AppendLine("Warrior - This role increases your damage against other players and gives you access to better weapons.");
 
-            Plugin.SendRoles((IMyPlayer)Context.Player, "Available roles:", message);
+            Helper.SendRoleData(Context.Player, "Available roles:", message.ToString());
         }
 
 
@@ -104,7 +102,7 @@ namespace RPGPlugin
             reply.AppendLine("*** Information ***");
             reply.AppendLine("--------------------");
             reply.AppendLine("Miner:");
-            reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.IdentityId]._PlayerData.MinerLevel.ToString()}.");
+            reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.IdentityId].GetLevel().ToString()}.");
             reply.AppendLine($"Exp needed for next level: {Roles.PlayerManagers[Context.Player.IdentityId].ExpToLevelUp().ToString()}.");
             reply.AppendLine("--------------------");
             Context.Respond(reply.ToString());
