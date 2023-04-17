@@ -151,6 +151,7 @@
     <Compile Include="RPGPlugin\Utils\FileManager.cs" />
     <Compile Include="RPGPlugin\Utils\Helper.cs" />
     <Compile Include="RPGPlugin\Utils\Objects.cs" />
+    <Compile Include="RPGPlugin\Utils\WarriorActionData.cs" />
     <EmbeddedResource Include="RPGPlugin\Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

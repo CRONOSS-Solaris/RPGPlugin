@@ -33,7 +33,7 @@ namespace RPGPlugin
         public static Roles Instance { get; private set; }
         public MinerConfig minerConfig = new MinerConfig();
         public HunterConfig hunterConfig = new HunterConfig();
-        public WarriorConfig warriorConfig = new WarriorConfig();
+        //public WarriorConfig warriorConfig = new WarriorConfig();
         public bool ServerOnline;
         public bool DelayFinished;
 
@@ -60,8 +60,8 @@ namespace RPGPlugin
             patchContext = patchManager.AcquireContext();
             Patches.DrillPatch.Patch(patchContext);
             await minerConfig.LoadMinerConfig();
-            await warriorConfig.LoadWarriorConfig();
-            await hunterConfig.LoadHunterConfig();
+            //await warriorConfig.LoadWarriorConfig();
+            //await hunterConfig.LoadHunterConfig();
             Save();
         }
 

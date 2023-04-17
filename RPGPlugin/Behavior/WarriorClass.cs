@@ -1,74 +1,111 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
+﻿//using System;
+//using System.Collections.Generic;
+//using System.Collections.ObjectModel;
+//using System.Threading.Tasks;
+//using RPGPlugin.RPGPlugin.Utils;
+//using RPGPlugin.Utils;
+//using Sandbox.Game;
+//using Sandbox.Game.World;
+//using VRageMath;
+//using static RPGPlugin.Roles;
 
-namespace RPGPlugin.PointManagementSystem
-{
-    public class WarriorClass : ClassesBase
-    {
-        public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; }
-        protected override double _queueFrequency { get; set; }
-        protected override Task ProcessXpCollectedAsync()
-        {
-            throw new System.NotImplementedException();
-        }
+//namespace RPGPlugin.PointManagementSystem
+//{
+//    public class WarriorClass : ClassesBase
+//    {
+//        /// <inheritdoc />
+//        /// Point to your classConfig ExpRatio collection
+//        public override ObservableCollection<KeyValuePair<string, double>> ExpRatio
+//        {
+//            get => Instance.warriorConfig.ExpRatio;
+//            set => Instance.warriorConfig.ExpRatio = value;
+//        }
 
-        public override int ExpToLevelUp(long id)
-        {
-            throw new System.NotImplementedException();
-        }
+//        /// <inheritdoc />
+//        protected override double _queueFrequency { get; set; } = 10;
 
-        protected override Task AddClassExp(long id, double exp)
-        {
-            throw new System.NotImplementedException();
-        }
-        
-        
-        // WARRIOR SECTION
 
-        //// Method to add experience for a hunter for killing another player
-        //public async Task AddWarriorExpForKill(long warriorID)
-        //{
-        //    // Checking if the player data is available
-        //    If(!Roles.PlayerManagers.ContainsKey(warriorID)) return;
+//        protected override async Task ProcessXpCollectedAsync()
+//        {
+//            // Make sure the process is not already running.
+//            if (_queueInProcess) return;
 
-        //    // Checking if the player's role is a hunter
-        //    If(Roles.PlayerManagers[warriorID].GetRole() != PlayerManager.FromRoles.Warrior) return;
+//            // Not a lock but it acts like one while the time between queue process frequency is long enough.
+//            _queueInProcess = true;
 
-        //    // Retrieve the experience value per kill from the configuration
-        //    double expPerKill = WarriorConfig.LoadWarriorConfig().ExpPerKill;
+//            while (_ProcessQueue.Count > 0)
+//            {
+//                // Grab the first item from the queue, this will be the oldest item in the collection.
+//                if (!_ProcessQueue.TryDequeue(out WarriorActionData queueData)) continue;
 
-        //    // Adding experience for the hunter
-        //    await Roles.PlayerManagers[warriorID].AddWarriorExp(expPerKill);
-        //}
+//                // Make sure we have the value set, maybe not all owners want to reward all actions.
+//                if (!ExpRatio.ContainsKey(queueData.ActionType)) continue;
 
-        //// Method that adds experience for the hunter for destroying an enemy player's structure block
-        //Public async Task AddWarriorExpForDestroyedBlock(long warriorID, string blockType)
-        //{
-        //    // Checking if the player data is available
-        //    If(!Roles.PlayerManagers.ContainsKey(warriorID)) return;
+//                // If player data not loaded yet, don't crash
+//                if (!PlayerManagers.ContainsKey(queueData.Ownerid)) continue;
 
-        //    // Checking if the player's role is a hunter
-        //    If(Roles.PlayerManagers[warriorID].GetRole() != PlayerManager.FromRoles.Warrior) return;
+//                // If not a warrior, no points given.
+//                if (PlayerManagers[queueData.Ownerid].GetRole() != PlayerManager.FromRoles.Warrior) break;
 
-        //    // Retrieving the experience value for destroying a block from the configuration
-        //    double expPerDestroyedBlock = WarriorConfig.LoadWarriorConfig().ExpRatio[blockType];
+//                // ShitteryCheck
+//                if (ExpRatio.Count == 0) break;
+//                if (!PlayerManagers.ContainsKey(queueData.ownerID)) break;
 
-        //    // Adding experience for the hunter
-        //    await Roles.PlayerManagers[warriorID].AddWarriorExp(expPerDestroyedBlock);
-        //}
+//                // This is calculated, stored in another concurrent list, then saved to file.
+//                // we can await this to prevent and important process from running.
+//                await AddClassExp(queueData.ownerID, ExpRatio[queueData.ActionType]);
+//            }
+//            _queueInProcess = false;
+//        }
 
-        //Add an event or modify an existing event that is triggered when a player kills another player. 
 
-        //Then call AddWarriorExpForKill with the player ID as an argument.
 
-        //Add an event or modify an existing event that is triggered when a player destroys an enemy player's structure block. Then call 
+//        private double CalculateExpFromKills(long playerId)
+//        {
+//            double exp = 0;
+//            // Implement logic for calculating exp from killing enemy players
+//            return exp;
+//        }
 
-        //AddWarriorExpForDestroyedBlock with the player ID and the type of block destroyed as arguments.
+//        private double CalculateExpFromDestroyedBlocks(long playerId)
+//        {
+//            double exp = 0;
+//            // Implement logic for calculating exp from destroying enemy blocks
+//            return exp;
+//        }
 
-        //Make sure you load the hunter's configuration (WarriorConfig) similar to the miner's configuration (MinerConfig). You can do this by adding
+//        public override int ExpToLevelUp(long id)
+//        {
+//            throw new System.NotImplementedException();
+//        }
 
-        //WarriorConfig.LoadWarriorConfig() in the appropriate place, just as you did for MinerConfig.LoadMinerConfig().
-        
-    }
-}
+//        protected override Task AddClassExp(long id, double exp)
+//        {
+//            if (PlayerManagers[id]._PlayerData.WarriorExp + exp >= ExpToLevelUp(id))
+//            {
+//                PlayerManagers[id]._PlayerData.WarriorLevel++;
+//                PlayerManagers[id]._PlayerData.WarriorExp =
+//                    Math.Round(PlayerManagers[id]._PlayerData.WarriorExp + exp) - ExpToLevelUp(id);
+
+//                if (Instance.Config.BroadcastLevelUp)
+//                {
+//                    string name =
+//                        MySession.Static.Players.TryGetIdentityNameFromSteamId(PlayerManagers[id]._PlayerData.SteamId);
+//                    ChatManager.SendMessageAsOther("Roles Manager",
+//                        $"{name} is now a level {PlayerManagers[id]._PlayerData.WarriorLevel} Warrior!", Color.ForestGreen);
+//                }
+//                else
+//                {
+//                    MyVisualScriptLogicProvider.SendChatMessageColored("You have leveled up!!!", Color.Green, "Roles",
+//                        PlayerManagers[id]._PlayerData.PlayerID);
+//                }
+//            }
+//            else
+//            {
+//                PlayerManagers[id]._PlayerData.WarriorExp += exp;
+//            }
+
+//            return Task.CompletedTask;
+//        }
+//    }
+//}
