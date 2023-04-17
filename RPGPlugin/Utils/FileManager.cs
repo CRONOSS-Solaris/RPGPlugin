@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using NLog.Fluent;
 using Sandbox.Game.World;
 
 namespace RPGPlugin.Utils
@@ -106,6 +107,7 @@ namespace RPGPlugin.Utils
                         {
                             var serializer = new XmlSerializer(typeof(PlayerData));
                             serializer.Serialize(writer, data);
+                            Roles.Log.Warn("Saved player data.");
                             return true;
                         }
                     }

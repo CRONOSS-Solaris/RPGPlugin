@@ -24,7 +24,7 @@ namespace RPGPlugin
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         public static ConcurrentDictionary<long, PlayerManager> PlayerManagers = new ConcurrentDictionary<long, PlayerManager>();
-        private Timer _delayManagers = new Timer();
+        private Timer _delayManagers = new Timer(TimeSpan.FromSeconds(5).TotalMilliseconds);
         public PatchManager patchManager;
         public PatchContext patchContext;
         public PointManager PointsManager = new PointManager();
@@ -47,7 +47,7 @@ namespace RPGPlugin
             base.Init(torch);
             Instance = this;
             SetupConfig();
-            _delayManagers.Interval = TimeSpan.FromSeconds(30).TotalMilliseconds;
+            _delayManagers.Stop();
             _delayManagers.Elapsed += DelayManagersOnElapsed;
             TorchSessionManager sessionManager = Torch.Managers.GetManager<TorchSessionManager>();
             if (sessionManager != null)
@@ -59,12 +59,12 @@ namespace RPGPlugin
             patchContext = patchManager.AcquireContext();
             Patches.DrillPatch.Patch(patchContext);
             await minerConfig.LoadMinerConfig();
-            await minerConfig.SaveMinerConfig();
             Save();
         }
 
         private void DelayManagersOnElapsed(object sender, ElapsedEventArgs e)
         {
+            Log.Warn("Delay Timer has finished.");
             PointsManager.Start();
             if (!ServerOnline) return;
             if (MySession.Static.SessionSimSpeedServer < 0.7) return;
@@ -75,6 +75,7 @@ namespace RPGPlugin
             {
                 PlayerManager _pm = new PlayerManager();
                 _pm.InitAsync(player.Id.SteamId);
+                Log.Warn("Loaded data for player " + player.DisplayName);
                 if (!PlayerManagers.TryAdd(player.Identity.IdentityId, _pm))
                 {
                     Log.Error($"Player {player.DisplayName} [{player.Id.SteamId}] datafile could not be loaded.");
@@ -83,6 +84,7 @@ namespace RPGPlugin
 
             MyMultiplayer.Static.ClientJoined += PlayerConnected;
             DelayFinished = true;
+           
         }
 
         private void SessionChanged(ITorchSession session, TorchSessionState state)
@@ -91,6 +93,7 @@ namespace RPGPlugin
             {
                 case TorchSessionState.Loaded:
                     Log.Info("Session Loaded!");
+                    _delayManagers.Start();
                     ServerOnline = true;
                     break;
 
@@ -194,11 +197,11 @@ namespace RPGPlugin
             try
             {
                 _config.Save();
-                Log.Info("Configuration Saved.");
+                Log.Info("Main Configuration Saved.");
             }
             catch (IOException e)
             {
-                Log.Warn(e, "Configuration failed to save");
+                Log.Warn(e, "Main Configuration Saved during plugin loading.");
             }
         }
     }

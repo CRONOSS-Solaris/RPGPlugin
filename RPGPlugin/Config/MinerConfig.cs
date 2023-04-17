@@ -50,7 +50,7 @@ namespace RPGPlugin
                     if (!File.Exists(configFilePath))
                     {
                         // Apply the default, no point saving a copy of defaultConfig.  Plus in the lock it cant be saved.
-                        await LoadSettings();
+                        await LoadSettings(defaultConfig);
                     }
                     else
                     {
@@ -58,10 +58,10 @@ namespace RPGPlugin
                         try
                         {
                             string jsonData = File.ReadAllText(configFilePath);
-                            MinerConfig newConfig = JsonConvert.DeserializeObject<MinerConfig>(jsonData);
+                            MinerConfig userConfig = JsonConvert.DeserializeObject<MinerConfig>(jsonData);
                             
                             // Process newly loaded settings
-                            await LoadSettings(newConfig);
+                            await LoadSettings(userConfig);
 
                         }
                         catch (Exception e)
@@ -69,8 +69,7 @@ namespace RPGPlugin
                             File.Move(configFilePath, Path.Combine(storagePath, "MinerConfig_ERROR.json")); // Renames the file.
                             Roles.Log.Error($"There was an issue loading the MinerConfig.json configuration file.  The file has renamed too MinerConfig_ERROR.json and a clean default Miner configuration file created.");
                             Roles.Log.Error(e);
-                            await SaveMinerConfig();
-                            await LoadSettings();
+                            await LoadSettings(defaultConfig);
                         }
                     }
                 }
@@ -79,13 +78,13 @@ namespace RPGPlugin
                     // Unable to get lock and load data!
                     Roles.Log.Error(
                         $"Unable to load MinerConfig.json, {configFilePath} is locked by another process. Using default values.");
-                    await LoadSettings();
+                    await LoadSettings(defaultConfig);
                 }
             }
             catch (Exception e)
             {
                 Roles.Log.Error(e);
-                await LoadSettings();
+                await LoadSettings(defaultConfig);
             }
             finally
             {
@@ -95,9 +94,9 @@ namespace RPGPlugin
             
         }
 
-        private Task LoadSettings(MinerConfig config = null)
+        private Task LoadSettings(MinerConfig config)
         {
-            ExpRatio = config == null ? defaultConfig.ExpRatio : config.ExpRatio;
+            ExpRatio = config.ExpRatio;
             return Task.CompletedTask;
         }
 

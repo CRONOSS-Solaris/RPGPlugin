@@ -30,8 +30,10 @@ namespace RPGPlugin.Patches
             Vector3D hitPosition,
             int removedAmount)
         {
+            if (removedAmount == 0) return;
             MyCubeBlock drill = _getEntity(__instance) as MyCubeBlock;
             if (drill == null) return;
+            
             
             Roles.Instance.PointsManager.MinerProtocol._ProcessQueue.Enqueue(new CollectedOre
             {
