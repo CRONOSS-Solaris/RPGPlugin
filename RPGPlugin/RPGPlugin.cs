@@ -17,6 +17,7 @@ using Torch.API.Session;
 using Torch.Managers.PatchManager;
 using Torch.Session;
 using VRage.GameServices;
+using RPGPlugin.Patches;
 
 namespace RPGPlugin
 {
@@ -33,7 +34,7 @@ namespace RPGPlugin
         public static Roles Instance { get; private set; }
         public MinerConfig minerConfig = new MinerConfig();
         public HunterConfig hunterConfig = new HunterConfig();
-        //public WarriorConfig warriorConfig = new WarriorConfig();
+        public WarriorConfig warriorConfig = new WarriorConfig();
         public bool ServerOnline;
         public bool DelayFinished;
 
@@ -59,9 +60,10 @@ namespace RPGPlugin
             patchManager = DependencyProviderExtensions.GetManager<PatchManager>(torch.Managers);
             patchContext = patchManager.AcquireContext();
             Patches.DrillPatch.Patch(patchContext);
+            BlockDamagePatch.Patch(patchContext);
             await minerConfig.LoadMinerConfig();
-            //await warriorConfig.LoadWarriorConfig();
-            //await hunterConfig.LoadHunterConfig();
+            await warriorConfig.LoadWarriorConfig();
+            await hunterConfig.LoadHunterConfig();
             Save();
         }
 
