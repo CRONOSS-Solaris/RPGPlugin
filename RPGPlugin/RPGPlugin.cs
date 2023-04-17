@@ -61,6 +61,7 @@ namespace RPGPlugin
             Patches.DrillPatch.Patch(patchContext);
             await minerConfig.LoadMinerConfig();
             await warriorConfig.LoadWarriorConfig();
+            await hunterConfig.LoadHunterConfig();
             Save();
         }
 
