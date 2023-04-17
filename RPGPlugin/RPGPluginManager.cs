@@ -43,6 +43,11 @@ namespace RPGPlugin
         {
             return _PlayerData.SteamId;
         }
+        
+        public long GetAttackerId()
+        {
+            return _PlayerData.AttackerId;
+        }
 
         private async Task LoadPlayerData(ulong steamId)
         {

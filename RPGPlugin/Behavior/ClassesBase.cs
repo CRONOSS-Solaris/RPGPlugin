@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
 using System.Timers;
+using RPGPlugin.RPGPlugin.Utils;
 using RPGPlugin.Utils;
 using Sandbox.Game;
 using Sandbox.Game.World;
@@ -25,6 +26,10 @@ namespace RPGPlugin.PointManagementSystem
         /// </summary>
         public ConcurrentQueue<CollectedOre> _ProcessQueue { get; set; } =
             new ConcurrentQueue<CollectedOre>();
+
+        public ConcurrentQueue<WarriorActionData> _WarriorProcessQueue { get; set; } = 
+            new ConcurrentQueue<WarriorActionData>();
+
 
         /// <summary>
         /// KVP lookups for larger collections are not the best for performance, Dictionary uses hashtables at
