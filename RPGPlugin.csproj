@@ -113,6 +113,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RPGPlugin\Behavior\ClassesBase.cs" />
     <Compile Include="RPGPlugin\Behavior\MinerClass.cs" />
     <Compile Include="RPGPlugin\Behavior\PointManagementSystem.cs" />
     <Compile Include="RPGPlugin\Behavior\WarriorClass.cs" />

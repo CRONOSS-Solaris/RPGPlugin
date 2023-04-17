@@ -94,7 +94,7 @@ namespace RPGPlugin
             
             if (!Roles.PlayerManagers.ContainsKey(Context.Player.IdentityId))
             {
-                Context.Respond("Problem loading your profile, please contact staff about this error if it continues.");
+                Context.Respond("Problem loading your profile or your profile has not been loaded yet. Please contact staff about this error if it continues.");
                 return;
             }
             
@@ -103,7 +103,7 @@ namespace RPGPlugin
             reply.AppendLine("--------------------");
             reply.AppendLine("Miner:");
             reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.IdentityId].GetLevel().ToString()}.");
-            reply.AppendLine($"Exp needed for next level: {Roles.PlayerManagers[Context.Player.IdentityId].ExpToLevelUp().ToString()}.");
+            reply.AppendLine($"Exp needed for next level: {Roles.Instance.PointsManager.MinerProtocol.ExpToLevelUp(Context.Player.IdentityId).ToString()}.");
             reply.AppendLine("--------------------");
             Context.Respond(reply.ToString());
             

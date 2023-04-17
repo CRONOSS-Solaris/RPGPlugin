@@ -10,10 +10,7 @@ public class PlayerData
     public double MinerExp { get; set; }
     public PlayerManager.FromRoles SelectedRole { get; set; }
 
-    public PlayerData()
-    {
-        
-    }
+    public PlayerData() {}
 
     public void CreateNew(ulong steamId, long playerId)
     {

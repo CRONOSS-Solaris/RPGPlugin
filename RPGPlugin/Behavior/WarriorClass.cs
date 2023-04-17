@@ -1,7 +1,29 @@
-﻿namespace RPGPlugin.PointManagementSystem
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+
+namespace RPGPlugin.PointManagementSystem
 {
-    public class WarriorClass
+    public class WarriorClass : ClassesBase
     {
+        public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; }
+        protected override double _queueFrequency { get; set; }
+        protected override Task ProcessXpCollectedAsync()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override int ExpToLevelUp(long id)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        protected override Task AddClassExp(long id, double exp)
+        {
+            throw new System.NotImplementedException();
+        }
+        
+        
         // WARRIOR SECTION
 
         //// Method to add experience for a hunter for killing another player
@@ -47,5 +69,6 @@
         //Make sure you load the hunter's configuration (WarriorConfig) similar to the miner's configuration (MinerConfig). You can do this by adding
 
         //WarriorConfig.LoadWarriorConfig() in the appropriate place, just as you did for MinerConfig.LoadMinerConfig().
+        
     }
 }

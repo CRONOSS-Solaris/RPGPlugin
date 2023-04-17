@@ -1,73 +1,97 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Threading.Tasks;
-using System.Timers;
 using RPGPlugin.Utils;
-using Timer = System.Timers.Timer;
+using Sandbox.Game;
+using Sandbox.Game.World;
+using VRageMath;
+using static RPGPlugin.Roles;
 
 namespace RPGPlugin.PointManagementSystem
 {
-    public sealed class MinerClass
+    public sealed class MinerClass : ClassesBase
     {
-        // Miner Reward Rates
-        public ObservableCollection<KeyValuePair<string, double>> ExpRatio = new ObservableCollection<KeyValuePair<string, double>>();
-        public Timer _QueueTimer = new Timer();
-        public ConcurrentQueue<CollectedOre> _ProcessQueue = new ConcurrentQueue<CollectedOre>();
-        private Dictionary<string, double> oreTable = new Dictionary<string, double>();
-            
-        private static bool _queueInProcess;
-
-        public MinerClass()
+        /// <inheritdoc />
+        /// Point to your classConfig ExpRatio collection
+        public override ObservableCollection<KeyValuePair<string, double>> ExpRatio
         {
-            _QueueTimer.Interval = TimeSpan.FromSeconds(10).TotalMilliseconds;
-            _QueueTimer.Elapsed += ProcessOresCollected;
-            ExpRatio.CollectionChanged += UpdateLookupTable;
+            get => Instance.minerConfig.ExpRatio;
+            set => Instance.minerConfig.ExpRatio = value;
         }
 
-        private void UpdateLookupTable(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            foreach (var kvp in ExpRatio)
-            {
-                oreTable.Add(kvp.Key, kvp.Value);
-            }
-        }
-        
-        public void Start()
-        {
-            _QueueTimer.Start();
-            ProcessOresCollected(null,null);
-        }
-        
-        private async void ProcessOresCollected(object state, ElapsedEventArgs elapsedEventArgs)
-        {
-            await ProcessOresCollectedAsync();
-        }
+        /// <inheritdoc />
+        protected override double _queueFrequency { get; set; } = 10;
 
-        private async Task ProcessOresCollectedAsync()
+        /// <inheritdoc />
+        protected override async Task ProcessXpCollectedAsync()
         {
-            // Create look-up table
-            
-            
+            // Make sure the process is not already running.
             if (_queueInProcess) return;
-            
+
+            // Not a lock but it acts like one while the time between queue process frequency is long enough.
             _queueInProcess = true;
             while (_ProcessQueue.Count > 0)
             {
+                // Grab the first item from the queue, this will be the oldest item in the collection.
                 if (!_ProcessQueue.TryDequeue(out CollectedOre queueData)) continue;
                 
+                // Make sure we have the value set, maybe not all owners want to reward all ore types mined.
+                if (!xpTable.ContainsKey(queueData.subType)) continue;
+                    
                 // If player data no loaded yet, dont crash
-                if (!Roles.PlayerManagers.ContainsKey(queueData.ownerID)) continue;
+                if (!PlayerManagers.ContainsKey(queueData.ownerID)) continue;
                 
                 // If not a miner, no points given.
-                if (Roles.PlayerManagers[queueData.ownerID].GetRole() != PlayerManager.FromRoles.Miner) return;
-            
-                await Roles.PlayerManagers[queueData.ownerID].AddMinerExp(oreTable[queueData.subType] * queueData.amount);
+                if (PlayerManagers[queueData.ownerID].GetRole() != PlayerManager.FromRoles.Miner) break;
+                
+                // shitteryCheck
+                if (xpTable.Count == 0) break;
+                if (!PlayerManagers.ContainsKey(queueData.ownerID)) break;
+                
+                // This is calculated, stored in another concurrent list, then saved to file.  
+                // we can await this to prevent and important process from running.
+                
+                await AddClassExp(queueData.ownerID , xpTable[queueData.subType] * queueData.amount);
+            }
+            _queueInProcess = false;
+        }
+
+        /// <inheritdoc />
+        public override int ExpToLevelUp(long id)
+        {
+            int expForLevelUp = (int)Math.Round(PlayerManagers[id]._PlayerData.MinerLevel / 3.5 * 10000);
+            return (int)Math.Round(expForLevelUp - PlayerManagers[id]._PlayerData.MinerExp);
+        }
+
+        /// <inheritdoc />
+        protected override Task AddClassExp(long id, double exp)
+        {
+            if (PlayerManagers[id]._PlayerData.MinerExp + exp >= ExpToLevelUp(id))
+            {
+                PlayerManagers[id]._PlayerData.MinerLevel++;
+                PlayerManagers[id]._PlayerData.MinerExp =
+                    Math.Round(PlayerManagers[id]._PlayerData.MinerExp + exp) - ExpToLevelUp(id);
+
+                if (Instance.Config.BroadcastLevelUp)
+                {
+                    string name =
+                        MySession.Static.Players.TryGetIdentityNameFromSteamId(PlayerManagers[id]._PlayerData.SteamId);
+                    ChatManager.SendMessageAsOther("Roles Manager",
+                        $"{name} is now a level {PlayerManagers[id]._PlayerData.MinerLevel} Miner!", Color.ForestGreen);
+                }
+                else
+                {
+                    MyVisualScriptLogicProvider.SendChatMessageColored("You have leveled up!!!", Color.Green, "Roles",
+                        PlayerManagers[id]._PlayerData.PlayerID);
+                }
+            }
+            else
+            {
+                PlayerManagers[id]._PlayerData.MinerExp += exp;
             }
 
-            _queueInProcess = false;
+            return Task.CompletedTask;
         }
     }
 }
