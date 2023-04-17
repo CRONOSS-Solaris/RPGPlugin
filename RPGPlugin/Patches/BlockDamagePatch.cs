@@ -67,5 +67,6 @@ namespace RPGPlugin.Patches
                 }
             }
         }
+
     }
 }
