@@ -60,7 +60,7 @@ namespace RPGPlugin
             patchManager = DependencyProviderExtensions.GetManager<PatchManager>(torch.Managers);
             patchContext = patchManager.AcquireContext();
             Patches.DrillPatch.Patch(patchContext);
-            Patches.BlockDamagePatch.Patch(patchContext);
+            BlockDamagePatch.Init();
             await minerConfig.LoadMinerConfig();
             await warriorConfig.LoadWarriorConfig();
             await hunterConfig.LoadHunterConfig();

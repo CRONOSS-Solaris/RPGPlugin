@@ -1,13 +1,8 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
-using RPGPlugin.RPGPlugin.Utils;
-using RPGPlugin.Utils;
+﻿using RPGPlugin.RPGPlugin.Utils;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.World;
-using Torch.Managers.PatchManager;
-using Torch.Utils;
+using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Utils;
@@ -17,43 +12,25 @@ namespace RPGPlugin.Patches
     public static class BlockDamagePatch
     {
         private static RPGPluginConfig Config => Roles.Instance.Config;
+        private static Roles Instance => Roles.Instance;
 
-        public static void Patch(PatchContext ctx)
+        public static void Init()
         {
-            var doDamageMethods = typeof(MySlimBlock)
-                .GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                .Where(m => m.Name == "DoDamage");
-
-            if (!doDamageMethods.Any())
-            {
-                throw new InvalidOperationException("DoDamage method not found.");
-            }
-
-            var doDamageMethod = doDamageMethods.First();
-
-            //not sure if the code above works well
+            MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(0, BeforeDamageHandler);
         }
 
-        public static void SuffixDoDamage
-        (
-            MySlimBlock __instance,
-            float damage,
-            MyStringHash damageType,
-            bool sync,
-            MyHitInfo? hitInfo,
-            long PlayerID
-        )
+        private static void BeforeDamageHandler(object targetEntity, ref MyDamageInformation info)
         {
-            // Check if the block was destroyed and the attacker is a player
-            if (__instance.IsDestroyed && PlayerID != 0)
+            // Check if the target is a block and the attacker is a player
+            if (targetEntity is MySlimBlock block && info.AttackerId != 0)
             {
                 // Get the player identity
-                var playerIdentity = MySession.Static.Players.TryGetIdentity(PlayerID);
+                var playerIdentity = MySession.Static.Players.TryGetIdentity(info.AttackerId);
 
                 if (playerIdentity == null) return;
 
                 // Get the player's role
-                var playerRole = Roles.PlayerManagers[PlayerID].GetRole();
+                var playerRole = Roles.PlayerManagers[info.AttackerId].GetRole();
 
                 // Check if the player's role is Warrior
                 if (playerRole == PlayerManager.FromRoles.Warrior)
@@ -61,12 +38,11 @@ namespace RPGPlugin.Patches
                     // Add the destroyed block to the process queue for the warrior class
                     Roles.Instance.PointsManager.WarriorProtocol._WarriorProcessQueue.Enqueue(new WarriorActionData
                     {
-                        OwnerID = PlayerID,
+                        OwnerID = info.AttackerId,
                         ActionType = "DestroyedBlock"
                     });
                 }
             }
         }
-
     }
 }
