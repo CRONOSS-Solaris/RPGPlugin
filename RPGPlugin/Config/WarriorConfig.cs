@@ -59,7 +59,7 @@ namespace RPGPlugin
                         catch (Exception e)
                         {
                             File.Move(configFilePath, Path.Combine(storagePath, "WarriorConfig_ERROR.json")); // Renames the file.
-                            Roles.Log.Error($"There was an issue loading the WarriorConfig.json configuration file.  The file has renamed too WarriorConfig_ERROR.json and a clean default Miner configuration file created.");
+                            Roles.Log.Error($"There was an issue loading the WarriorConfig.json configuration file.  The file has renamed too WarriorConfig_ERROR.json and a clean default Warrior configuration file created.");
                             Roles.Log.Error(e);
                             await SaveWarriorConfig();
                             await LoadSettings();

@@ -59,7 +59,7 @@ namespace RPGPlugin
                         catch (Exception e)
                         {
                             File.Move(configFilePath, Path.Combine(storagePath, "HunterConfig_ERROR.json")); // Renames the file.
-                            Roles.Log.Error($"There was an issue loading the HunterConfig.json configuration file.  The file has renamed too HunterConfig_ERROR.json and a clean default Miner configuration file created.");
+                            Roles.Log.Error($"There was an issue loading the HunterConfig.json configuration file.  The file has renamed too HunterConfig_ERROR.json and a clean default Hunter configuration file created.");
                             Roles.Log.Error(e);
                             await LoadSettings(defaultConfig);
                         }
