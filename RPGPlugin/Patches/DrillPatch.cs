@@ -35,7 +35,7 @@ namespace RPGPlugin.Patches
             if (drill == null) return;
             
             
-            Roles.Instance.PointsManager.MinerProtocol._ProcessQueue.Enqueue(new CollectedOre
+            Roles.Instance.PointsManager.MinerProtocol._ProcessQueue.Enqueue(new ExperienceAction
             {
                 ownerID = drill.OwnerId,
                 subType = material.MinedOre,

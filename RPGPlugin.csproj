@@ -121,7 +121,6 @@
     <Compile Include="RPGPlugin\Config\MinerConfig.cs" />
     <Compile Include="RPGPlugin\Config\PlayerData.cs" />
     <Compile Include="RPGPlugin\Config\WarriorConfig.cs" />
-    <Compile Include="RPGPlugin\Patches\BlockDamagePatch.cs" />
     <Compile Include="RPGPlugin\Patches\DrillPatch.cs" />
     <Compile Include="RPGPlugin\Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -152,7 +151,6 @@
     <Compile Include="RPGPlugin\Utils\FileManager.cs" />
     <Compile Include="RPGPlugin\Utils\Helper.cs" />
     <Compile Include="RPGPlugin\Utils\Objects.cs" />
-    <Compile Include="RPGPlugin\Utils\WarriorActionData.cs" />
     <EmbeddedResource Include="RPGPlugin\Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

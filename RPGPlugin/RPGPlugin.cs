@@ -18,6 +18,8 @@ using Torch.Managers.PatchManager;
 using Torch.Session;
 using VRage.GameServices;
 using RPGPlugin.Patches;
+using Sandbox.ModAPI;
+using VRage.Game.ModAPI;
 
 namespace RPGPlugin
 {
@@ -59,8 +61,7 @@ namespace RPGPlugin
 
             patchManager = DependencyProviderExtensions.GetManager<PatchManager>(torch.Managers);
             patchContext = patchManager.AcquireContext();
-            Patches.DrillPatch.Patch(patchContext);
-            BlockDamagePatch.Init();
+            DrillPatch.Patch(patchContext);
             await minerConfig.LoadMinerConfig();
             await warriorConfig.LoadWarriorConfig();
             await hunterConfig.LoadHunterConfig();
@@ -86,10 +87,9 @@ namespace RPGPlugin
                     Log.Error($"Player {player.DisplayName} [{player.Id.SteamId}] datafile could not be loaded.");
                 }
             }
-
+            
             MyMultiplayer.Static.ClientJoined += PlayerConnected;
             DelayFinished = true;
-           
         }
 
         private void SessionChanged(ITorchSession session, TorchSessionState state)
