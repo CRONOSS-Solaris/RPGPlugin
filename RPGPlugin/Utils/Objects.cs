@@ -1,6 +1,6 @@
 ﻿namespace RPGPlugin.Utils
 {
-    public sealed class CollectedOre
+    public sealed class ExperienceAction
     {
         public long ownerID { get; set; }
         public string subType { get; set; }

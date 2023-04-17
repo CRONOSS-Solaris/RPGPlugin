@@ -5,12 +5,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
 using System.Timers;
-using RPGPlugin.RPGPlugin.Utils;
 using RPGPlugin.Utils;
-using Sandbox.Game;
-using Sandbox.Game.World;
-using VRageMath;
-using static RPGPlugin.Roles;
 
 namespace RPGPlugin.PointManagementSystem
 {
@@ -24,12 +19,8 @@ namespace RPGPlugin.PointManagementSystem
         /// <summary>
         /// Thread safe FIFO collection for storing points during server startup and between calculations.
         /// </summary>
-        public ConcurrentQueue<CollectedOre> _ProcessQueue { get; set; } =
-            new ConcurrentQueue<CollectedOre>();
-
-        public ConcurrentQueue<WarriorActionData> _WarriorProcessQueue { get; set; } = 
-            new ConcurrentQueue<WarriorActionData>();
-
+        public ConcurrentQueue<ExperienceAction> _ProcessQueue { get; set; } =
+            new ConcurrentQueue<ExperienceAction>();
 
         /// <summary>
         /// KVP lookups for larger collections are not the best for performance, Dictionary uses hashtables at

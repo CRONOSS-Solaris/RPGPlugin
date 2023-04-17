@@ -34,7 +34,7 @@ namespace RPGPlugin.PointManagementSystem
             while (_ProcessQueue.Count > 0)
             {
                 // Grab the first item from the queue, this will be the oldest item in the collection.
-                if (!_ProcessQueue.TryDequeue(out CollectedOre queueData)) continue;
+                if (!_ProcessQueue.TryDequeue(out ExperienceAction queueData)) continue;
                 
                 // Make sure we have the value set, maybe not all owners want to reward all ore types mined.
                 if (!xpTable.ContainsKey(queueData.subType)) continue;

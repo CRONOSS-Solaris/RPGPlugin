@@ -16,11 +16,10 @@ public class PlayerData
 
     public PlayerData() {}
 
-    public void CreateNew(ulong steamId, long playerId, long attackerId)
+    public void CreateNew(ulong steamId, long playerId)
     {
         SteamId = steamId;
         PlayerID = playerId;
-        AttackerId = attackerId;
         MinerLevel = 1;
         MinerExp = 0.0;
         WarriorLevel = 1;

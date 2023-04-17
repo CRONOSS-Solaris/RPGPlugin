@@ -1,12 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using RPGPlugin.RPGPlugin.Utils;
 using RPGPlugin.Utils;
 using Sandbox.Game;
 using Sandbox.Game.World;
+using Sandbox.ModAPI;
+using VRage.Game.ModAPI;
 using VRageMath;
 using static RPGPlugin.Roles;
 
@@ -14,6 +15,13 @@ namespace RPGPlugin.PointManagementSystem
 {
     public class WarriorClass : ClassesBase
     {
+
+        public void Init()
+        {
+            MyDamageInformation damageInformation = default;
+            MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(0, DamageHandler);
+        }
+            
         /// <inheritdoc />
         /// Point to your classConfig ExpRatio collection
         public override ObservableCollection<KeyValuePair<string, double>> ExpRatio
@@ -25,6 +33,10 @@ namespace RPGPlugin.PointManagementSystem
         /// <inheritdoc />
         protected override double _queueFrequency { get; set; } = 10;
 
+        public void DamageHandler(object target, ref MyDamageInformation info)
+        {
+            // as fast as possible, get the needed information and send to the queue.
+        }
 
         protected override async Task ProcessXpCollectedAsync()
         {
@@ -34,34 +46,32 @@ namespace RPGPlugin.PointManagementSystem
             // Not a lock but it acts like one while the time between queue process frequency is long enough.
             _queueInProcess = true;
 
-            while (_WarriorProcessQueue.Count > 0)
+            while (_ProcessQueue.Count > 0)
             {
                 // Grab the first item from the queue, this will be the oldest item in the collection.
-                if (!_WarriorProcessQueue.TryDequeue(out WarriorActionData queueData)) continue;
+                if (!_ProcessQueue.TryDequeue(out ExperienceAction queueData)) continue;
 
                 // Make sure we have the value set, maybe not all owners want to reward all actions.
                 var expRatioDict = ExpRatio.ToDictionary(x => x.Key, x => x.Value);
-                if (!expRatioDict.ContainsKey(queueData.ActionType)) continue;
+                if (!expRatioDict.ContainsKey(queueData.subType)) continue;
 
 
                 // If player data not loaded yet, don't crash
-                if (!PlayerManagers.ContainsKey(queueData.OwnerID)) continue;
+                if (!PlayerManagers.ContainsKey(queueData.ownerID)) continue;
 
                 // If not a warrior, no points given.
-                if (PlayerManagers[queueData.OwnerID].GetRole() != PlayerManager.FromRoles.Warrior) break;
+                if (PlayerManagers[queueData.ownerID].GetRole() != PlayerManager.FromRoles.Warrior) break;
 
                 // ShitteryCheck
                 if (ExpRatio.Count == 0) break;
-                if (!PlayerManagers.ContainsKey(queueData.OwnerID)) break;
+                if (!PlayerManagers.ContainsKey(queueData.ownerID)) break;
 
                 // This is calculated, stored in another concurrent list, then saved to file.
                 // we can await this to prevent and important process from running.
-                await AddClassExp(queueData.OwnerID, expRatioDict[queueData.ActionType]);
+                await AddClassExp(queueData.ownerID, expRatioDict[queueData.subType]);
             }
             _queueInProcess = false;
         }
-
-
 
         private double CalculateExpFromKills(long playerId)
         {
@@ -110,5 +120,7 @@ namespace RPGPlugin.PointManagementSystem
 
             return Task.CompletedTask;
         }
+        //WarriorConfig.LoadWarriorConfig() in the appropriate place, just as you did for MinerConfig.LoadMinerConfig().
+        
     }
 }
