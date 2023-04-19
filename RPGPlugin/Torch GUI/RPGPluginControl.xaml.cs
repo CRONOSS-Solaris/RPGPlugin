@@ -26,6 +26,7 @@ namespace RPGPlugin
             DataContext = this;
             ExpRatioDataGrid.DataContext = Roles.Instance.minerConfig;
             ExpRatioDataGrid.ItemsSource = Roles.Instance.minerConfig.ExpRatio;
+            BroadcastLevelUpToggleButton.IsChecked = Plugin.Config.BroadcastLevelUp;
         }
 
         public void Donate_Click(object sender, RoutedEventArgs e)
@@ -120,6 +121,16 @@ namespace RPGPlugin
                 FileName = discordInviteLink,
                 UseShellExecute = true
             });
+        }
+
+        private void BroadcastLevelUpToggleButton_Checked(object sender, RoutedEventArgs e)
+        {
+            Plugin.Config.BroadcastLevelUp = true;
+        }
+
+        private void BroadcastLevelUpToggleButton_Unchecked(object sender, RoutedEventArgs e)
+        {
+            Plugin.Config.BroadcastLevelUp = false;
         }
 
     }

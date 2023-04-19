@@ -171,6 +171,7 @@
     <Resource Include="comingsoon.png" />
     <Resource Include="Image\Donate-Button.png" />
     <Resource Include="Image\support.png" />
+    <Resource Include="Image\hand-coin.png" />
     <Content Include="manifest.xml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
@@ -187,6 +188,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="RPGPlugin\Torch GUI\RPGPluginControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Simple Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
