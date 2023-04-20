@@ -64,13 +64,9 @@
 
                     <Button Style="{StaticResource DonateButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="Donate_Click" Margin="0,0,10,10"/>
 
-
-                    <Button x:Name="SupportButton" Style="{StaticResource RotatingButtonStyle}" Width="64" Height="64" HorizontalAlignment="Right" VerticalAlignment="Top" Click="SupportButton_Click">
-                        <Image Source="/RPGPlugin;component/Image/support.png"/>
-                    </Button>
-
                     <ToggleButton x:Name="BroadcastLevelUpToggleButton" Style="{StaticResource ToggleButtonStyle1}" Margin="112.333,16,0,0" Checked="BroadcastLevelUpToggleButton_Checked" Unchecked="BroadcastLevelUpToggleButton_Unchecked" VerticalAlignment="Top" HorizontalAlignment="Left"/>
                     <TextBlock HorizontalAlignment="Left" Height="13.25" Margin="10,19.75,0,0" TextWrapping="Wrap" Text="NOTIFICATIONS LVLUP" VerticalAlignment="Top" Width="97.333" FontSize="9" TextAlignment="Center" FontWeight="Bold" Foreground="Black"/>
+                    <Button HorizontalAlignment="Left" Height="64" Margin="720,10,0,0" VerticalAlignment="Top" Width="64" Style="{StaticResource supportbutton}"/>
 
                 </Grid>
             </TabItem>
