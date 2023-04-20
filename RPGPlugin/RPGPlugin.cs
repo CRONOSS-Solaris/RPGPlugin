@@ -18,25 +18,23 @@ using Torch.Managers.PatchManager;
 using Torch.Session;
 using VRage.GameServices;
 using RPGPlugin.Patches;
-using Sandbox.ModAPI;
-using VRage.Game.ModAPI;
+using RPGPlugin.Utils;
+using Sandbox.Game.Multiplayer;
 
 namespace RPGPlugin
 {
     public class Roles : TorchPluginBase, IWpfPlugin
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        public static ConcurrentDictionary<long, PlayerManager> PlayerManagers = new ConcurrentDictionary<long, PlayerManager>();
+        public static ConcurrentDictionary<ulong, PlayerManager> PlayerManagers = new ConcurrentDictionary<ulong, PlayerManager>();
+        public static Dictionary<string, configBase> classConfigs = new Dictionary<string, configBase>();
+        public static Dictionary<string, ClassesBase> roles = new Dictionary<string, ClassesBase>();
         private Timer _delayManagers = new Timer(TimeSpan.FromSeconds(5).TotalMilliseconds);
         public PatchManager patchManager;
         public PatchContext patchContext;
-        public PointManager PointsManager = new PointManager();
         public static IChatManagerServer ChatManager => Instance.Torch.CurrentSession.Managers.GetManager<IChatManagerServer>();
 
         public static Roles Instance { get; private set; }
-        public MinerConfig minerConfig = new MinerConfig();
-        public HunterConfig hunterConfig = new HunterConfig();
-        public WarriorConfig warriorConfig = new WarriorConfig();
         public bool ServerOnline;
         public bool DelayFinished;
 
@@ -46,7 +44,7 @@ namespace RPGPlugin
         private Persistent<RPGPluginConfig> _config;
         public RPGPluginConfig Config => _config?.Data;
 
-        public override async void Init(ITorchBase torch)
+        public override void Init(ITorchBase torch)
         {
             base.Init(torch);
             Instance = this;
@@ -62,16 +60,14 @@ namespace RPGPlugin
             patchManager = DependencyProviderExtensions.GetManager<PatchManager>(torch.Managers);
             patchContext = patchManager.AcquireContext();
             DrillPatch.Patch(patchContext);
-            await minerConfig.LoadMinerConfig();
-            await warriorConfig.LoadWarriorConfig();
-            await hunterConfig.LoadHunterConfig();
+            RoleAgent.allConfigs();
+            RoleAgent.allClasses();
             Save();
         }
 
         private void DelayManagersOnElapsed(object sender, ElapsedEventArgs e)
         {
             Log.Warn("Delay Timer has finished.");
-            PointsManager.Start();
             if (!ServerOnline) return;
             if (MySession.Static.SessionSimSpeedServer < 0.7) return;
             _delayManagers.Stop();
@@ -82,13 +78,14 @@ namespace RPGPlugin
                 PlayerManager _pm = new PlayerManager();
                 _pm.InitAsync(player.Id.SteamId);
                 Log.Warn("Loaded data for player " + player.DisplayName);
-                if (!PlayerManagers.TryAdd(player.Identity.IdentityId, _pm))
+                if (!PlayerManagers.TryAdd(player.Id.SteamId, _pm))
                 {
                     Log.Error($"Player {player.DisplayName} [{player.Id.SteamId}] datafile could not be loaded.");
                 }
             }
             
             MyMultiplayer.Static.ClientJoined += PlayerConnected;
+            MyMultiplayer.Static.ClientLeft += PlayerDisconnected;
             DelayFinished = true;
         }
 
@@ -100,6 +97,7 @@ namespace RPGPlugin
                     Log.Info("Session Loaded!");
                     _delayManagers.Start();
                     ServerOnline = true;
+                    RoleAgent.OnLoaded();
                     break;
 
                 case TorchSessionState.Unloading:
@@ -108,6 +106,7 @@ namespace RPGPlugin
                     MyMultiplayer.Static.ClientJoined -= PlayerConnected;
                     MyMultiplayer.Static.ClientLeft -= PlayerDisconnected;
                     SaveAllPlayersForShutDown();
+                    RoleAgent.Unload();
                     break;
             }
         }
@@ -117,31 +116,31 @@ namespace RPGPlugin
             // Unload them from the system, free up resources.
             MyPlayer player = MySession.Static.Players.TryGetPlayerBySteamId(steamID);
             
-            if (!PlayerManagers.ContainsKey(player.Identity.IdentityId))
+            if (!PlayerManagers.ContainsKey(steamID))
             {
-                Log.Error($"Unable to save profile for player [IdentityID:{player.Identity.IdentityId}], it was probably not loaded.");
+                Log.Error($"Unable to save profile for player [SteamID:{steamID}], it was probably not loaded.");
                 return;
             }
-            await PlayerManagers[player.Identity.IdentityId].SavePlayerData();
-            PlayerManagers.Remove(player.Identity.IdentityId);
+            await PlayerManagers[steamID].SavePlayerData();
+            PlayerManagers.TryRemove(steamID, out PlayerManager _);
         }
 
         private async void SaveAllPlayersForShutDown()
         {
-            foreach (KeyValuePair<long,PlayerManager> manager in PlayerManagers)
+            foreach (KeyValuePair<ulong,PlayerManager> manager in PlayerManagers)
             {
                 await manager.Value.SavePlayerData();
-                Log.Info("Roles Tracking Finished For " + manager.Value.GetSteamID());
+                Log.Info("Roles Tracking Finished For " + manager.Key);
             }
             PlayerManagers.Clear();
         }
 
-        private void PlayerConnected(ulong steamID, string s)
+        private static void PlayerConnected(ulong steamID, string s)
         {
-            MyPlayer player = MySession.Static.Players.TryGetPlayerBySteamId(steamID);
+            long playerId = Sync.Players.TryGetIdentityId(steamID);
             PlayerManager roleManager = new PlayerManager();
             roleManager.InitAsync(steamID);
-            PlayerManagers.TryAdd(player.Identity.IdentityId, roleManager);
+            PlayerManagers.TryAdd(steamID, roleManager);
         }
 
         private void SetupConfig()

@@ -11,8 +11,8 @@ namespace RPGPlugin
         private Roles Plugin { get; }
         public ObservableCollection<KeyValuePair<string, double>> ExpRatio
         {
-            get => Plugin.minerConfig.ExpRatio;
-            set => Plugin.minerConfig.ExpRatio = value;
+            get => Roles.classConfigs["MinerConfig"].ExpRatio;
+            set => Roles.classConfigs["WarriorConfig"].ExpRatio = value;
         }
         
         private RolesControl()
@@ -24,8 +24,8 @@ namespace RPGPlugin
         {
             Plugin = plugin;
             DataContext = this;
-            ExpRatioDataGrid.DataContext = Roles.Instance.minerConfig;
-            ExpRatioDataGrid.ItemsSource = Roles.Instance.minerConfig.ExpRatio;
+            ExpRatioDataGrid.DataContext = (MinerConfig)Roles.classConfigs["MinerConfig"];
+            ExpRatioDataGrid.ItemsSource = Roles.classConfigs["MinerConfig"].ExpRatio;
         }
 
         public void Donate_Click(object sender, RoutedEventArgs e)
@@ -44,9 +44,9 @@ namespace RPGPlugin
                 foreach (var newOre in newOres)
                 {
                     bool found = false;
-                    for (int index = Plugin.minerConfig.ExpRatio.Count - 1; index >= 0; index--)
+                    for (int index = Roles.classConfigs["MinerConfig"].ExpRatio.Count - 1; index >= 0; index--)
                     {
-                        var kvp = Plugin.minerConfig.ExpRatio[index];
+                        var kvp = Roles.classConfigs["MinerConfig"].ExpRatio[index];
                         if (kvp.Key != newOre.Key) continue;
                         MessageBox.Show($"Ore with the name '{newOre.Key}' already exists. Please choose a different name.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                         found = true;
@@ -54,9 +54,9 @@ namespace RPGPlugin
                     }
 
                     if (!found)
-                        Plugin.minerConfig.ExpRatio.Add(new KeyValuePair<string, double>(newOre.Key, newOre.Value));
+                        Roles.classConfigs["MinerConfig"].ExpRatio.Add(new KeyValuePair<string, double>(newOre.Key, newOre.Value));
                 }
-                await Roles.Instance.minerConfig.SaveMinerConfig();
+                await Roles.classConfigs["MinerConfig"].SaveConfig();
             }
         }
 
@@ -81,10 +81,10 @@ namespace RPGPlugin
                         return;
                     }
                     
-                    Plugin.minerConfig.ExpRatio.Remove(selectedOre);
-                    Plugin.minerConfig.ExpRatio.Add(new KeyValuePair<string, double>(editedOreName, editedOreExp));
+                    Roles.classConfigs["MinerConfig"].ExpRatio.Remove(selectedOre);
+                    Roles.classConfigs["MinerConfig"].ExpRatio.Add(new KeyValuePair<string, double>(editedOreName, editedOreExp));
 
-                    await Roles.Instance.minerConfig.SaveMinerConfig();  // No longer blocking UI thread on IO operation.
+                    await Roles.classConfigs["MinerConfig"].SaveConfig();  // No longer blocking UI thread on IO operation.
                 }
             }
             else
@@ -103,8 +103,8 @@ namespace RPGPlugin
                 result = MessageBox.Show($"Are you sure you want to delete the ore '{selectedOre.Key}'?", "Delete Ore", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (result != MessageBoxResult.Yes) return;
                 
-                Plugin.minerConfig.ExpRatio.Remove(selectedOre);
-                await Roles.Instance.minerConfig.SaveMinerConfig();
+                Roles.classConfigs["MinerConfig"].ExpRatio.Remove(selectedOre);
+                await Roles.classConfigs["MinerConfig"].SaveConfig();
             }
             else
             {

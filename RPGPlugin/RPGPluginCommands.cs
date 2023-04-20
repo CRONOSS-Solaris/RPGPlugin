@@ -23,10 +23,11 @@ namespace RPGPlugin
 
             if (!Roles.Instance.DelayFinished)
             {
-                Context.Respond("Your profile has not been loaded yet.  Your actions are still logged and points applied when your profile is loaded.  Check again in a few minutes.");
+                Context.Respond("Players data will not be loaded immediately after restarts to allow the server to stabilize.");
+                return;
             }
 
-            if (!Roles.PlayerManagers.ContainsKey(Context.Player.IdentityId))
+            if (!Roles.PlayerManagers.ContainsKey(Context.Player.SteamUserId))
             {
                 Context.Respond("Problem loading your profile.");
                 return;
@@ -36,20 +37,20 @@ namespace RPGPlugin
             switch (roleName.ToLower()) // No need for case sensitivity.
             {
                 case "norole":
-                    Roles.PlayerManagers[Context.Player.IdentityId].SetRole(PlayerManager.FromRoles.NoRole);
-                    await Roles.PlayerManagers[Context.Player.IdentityId].SavePlayerData();
+                    Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(PlayerManager.FromRoles.NoRole);
+                    await Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData();
                     Context.Respond("Your role has been updated to [No Role]");
                     break;
 
                 case "miner":
-                    Roles.PlayerManagers[Context.Player.IdentityId].SetRole(PlayerManager.FromRoles.Miner);
-                    await Roles.PlayerManagers[Context.Player.IdentityId].SavePlayerData();
+                    Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(PlayerManager.FromRoles.Miner);
+                    await Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData();
                     Context.Respond("Your role has been updated to [Miner]");
                     break;
 
                 case "warrior":
-                    Roles.PlayerManagers[Context.Player.IdentityId].SetRole(PlayerManager.FromRoles.Warrior);
-                    await Roles.PlayerManagers[Context.Player.IdentityId].SavePlayerData();
+                    Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(PlayerManager.FromRoles.Warrior);
+                    await Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData();
                     Context.Respond("Your role has been updated to [Warrior]");
                     break;
 
@@ -67,6 +68,12 @@ namespace RPGPlugin
             if (Context.Player == null)
             {
                 Context.Respond("This is a player command only.");
+                return;
+            }
+            
+            if (!Roles.Instance.DelayFinished)
+            {
+                Context.Respond("Players data will not be loaded immediately after restarts to allow the server to stabilize.");
                 return;
             }
 
@@ -91,8 +98,14 @@ namespace RPGPlugin
                 Context.Respond("This is a player command.");
                 return;
             }
+
+            if (!Roles.Instance.DelayFinished)
+            {
+                Context.Respond("Players data will not be loaded immediately after restarts to allow the server to stabilize.");
+                return;
+            }
             
-            if (!Roles.PlayerManagers.ContainsKey(Context.Player.IdentityId))
+            if (!Roles.PlayerManagers.ContainsKey(Context.Player.SteamUserId))
             {
                 Context.Respond("Problem loading your profile or your profile has not been loaded yet. Please contact staff about this error if it continues.");
                 return;
@@ -102,8 +115,8 @@ namespace RPGPlugin
             reply.AppendLine("*** Information ***");
             reply.AppendLine("--------------------");
             reply.AppendLine("Miner:");
-            reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.IdentityId].GetLevel().ToString()}.");
-            reply.AppendLine($"Exp needed for next level: {Roles.Instance.PointsManager.MinerProtocol.ExpToLevelUp(Context.Player.IdentityId).ToString()}.");
+            reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.SteamUserId].GetLevel().ToString()}.");
+            reply.AppendLine($"Exp needed for next level: {Roles.roles["MinerClass"].ExpToLevelUp(Context.Player.SteamUserId).ToString()}.");
             reply.AppendLine("--------------------");
             Context.Respond(reply.ToString());
             
