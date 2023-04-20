@@ -46,6 +46,33 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            <ControlTemplate x:Key="ButtonBase" TargetType="{x:Type ButtonBase}">
+                <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True" CornerRadius="8">
+                    <ContentPresenter x:Name="contentPresenter" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" ContentStringFormat="{TemplateBinding ContentStringFormat}" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="Button.IsDefaulted" Value="True">
+                        <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                    </Trigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" TargetName="border" Value="#FFBEE6FD"/>
+                        <Setter Property="BorderBrush" TargetName="border" Value="#FF3C7FB1"/>
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter Property="Background" TargetName="border" Value="#FFC4E5F6"/>
+                        <Setter Property="BorderBrush" TargetName="border" Value="#FF2C628B"/>
+                    </Trigger>
+                    <Trigger Property="ToggleButton.IsChecked" Value="True">
+                        <Setter Property="Background" TargetName="border" Value="#FFBCDDEE"/>
+                        <Setter Property="BorderBrush" TargetName="border" Value="#FF245A83"/>
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" TargetName="border" Value="#FFF4F4F4"/>
+                        <Setter Property="BorderBrush" TargetName="border" Value="#FFADB2B5"/>
+                        <Setter Property="Foreground" Value="#FF838383"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -59,7 +86,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <TabControl Grid.Row="1" Grid.ColumnSpan="2">
-            <TabItem Header="Main" Style="{StaticResource TabItemStyle}">
+            <TabItem Header="Main" Style="{StaticResource TabItemStyle}" IsSelected="True">
                 <Grid>
 
 
@@ -67,12 +94,12 @@
 
                     <ToggleButton x:Name="BroadcastLevelUpToggleButton" Style="{StaticResource ToggleButtonStyle1}" Margin="112.333,16,0,0" Checked="BroadcastLevelUpToggleButton_Checked" Unchecked="BroadcastLevelUpToggleButton_Unchecked" VerticalAlignment="Top" HorizontalAlignment="Left"/>
                     <TextBlock HorizontalAlignment="Left" Height="13.25" Margin="10,19.75,0,0" TextWrapping="Wrap" Text="NOTIFICATIONS LVLUP" VerticalAlignment="Top" Width="97.333" FontSize="9" TextAlignment="Center" FontWeight="Bold" Foreground="Black"/>
-                    <Button HorizontalAlignment="Left" Height="64" Margin="720,10,0,0" VerticalAlignment="Top" Width="64" Style="{StaticResource supportbutton}"/>
+                    <Button HorizontalAlignment="Right" Height="64" Margin="0,10,10,0" VerticalAlignment="Top" Width="64" Style="{StaticResource supportbutton}" Click="SupportButton_Click"/>
 
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Miner" Height="32" VerticalAlignment="Center" Style="{StaticResource TabItemStyle}" Margin="-2,0,-2,0" IsSelected="True">
+            <TabItem Header="Miner" Style="{StaticResource TabItemStyle}">
                 <Grid>
                     <Button x:Name="EditOreButton" Content="EDIT" Style="{StaticResource ButtonStyle}" Margin="115,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="EditOreButton_Click" Width="75" Height="25" FontSize="10" FontWeight="Bold"/>
                     <Button x:Name="DeleteOreButton" Content="DELETE" Style="{StaticResource ButtonStyle}" Margin="195,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="DeleteOreButton_Click" Width="75" Height="25" FontSize="10" FontWeight="Bold"/>
@@ -80,13 +107,14 @@
                     <Button x:Name="AddNewOreButton" Content="ADD NEW ORE" Style="{StaticResource ButtonStyle}" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="AddNewOreButton_Click" Background="DarkSlateGray" Width="100" Height="25" FontWeight="Bold" FontSize="10"/>
 
                     <DataGrid Name="ExpRatioDataGrid" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single"
-                              Height="372" VerticalAlignment="Top" AutoGenerateColumns="False"
-                              Margin="10,39,0,-1" AlternatingRowBackground="Snow" HorizontalAlignment="Left" Width="260" >
+          Height="372" VerticalAlignment="Top" AutoGenerateColumns="False"
+          Margin="10,39,0,-1" AlternatingRowBackground="Snow" HorizontalAlignment="Left" Width="260" Style="{StaticResource DataGridStyle}" Background="#FFF0F0F0" FontWeight="Bold" >
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Mineral" Binding="{Binding Path=Key}" IsReadOnly="True" Width="*"  />
-                            <DataGridTextColumn Header="Experience" Binding="{Binding Path=Value}" IsReadOnly="True" Width="*"  />
+                            <DataGridTextColumn Header="MINERAL" Binding="{Binding Path=Key}" IsReadOnly="True" Width="*" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" />
+                            <DataGridTextColumn Header="EXPERIENCE" Binding="{Binding Path=Value}" IsReadOnly="True" Width="*" HeaderStyle="{StaticResource DataGridColumnHeaderStyle2}" />
                         </DataGrid.Columns>
                     </DataGrid>
+
 
                 </Grid>
             </TabItem>
