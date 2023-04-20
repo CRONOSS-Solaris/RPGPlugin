@@ -28,6 +28,7 @@
                 <Setter Property="Margin" Value="5"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Template" Value="{DynamicResource ButtonBase}"/>
             </Style>
             <Style x:Key="RoundButtonStyle" TargetType="Button">
                 <Setter Property="Template">
@@ -73,10 +74,10 @@
 
             <TabItem Header="Miner" Height="32" VerticalAlignment="Center" Style="{StaticResource TabItemStyle}" Margin="-2,0,-2,0" IsSelected="True">
                 <Grid>
-                    <Button x:Name="EditOreButton" Content="EDIT" Style="{StaticResource ButtonStyle}" Margin="115,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="EditOreButton_Click" Width="75" Height="25"/>
-                    <Button x:Name="DeleteOreButton" Content="DELETE" Style="{StaticResource ButtonStyle}" Margin="195,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="DeleteOreButton_Click" Width="75" Height="25"/>
+                    <Button x:Name="EditOreButton" Content="EDIT" Style="{StaticResource ButtonStyle}" Margin="115,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="EditOreButton_Click" Width="75" Height="25" FontSize="10" FontWeight="Bold"/>
+                    <Button x:Name="DeleteOreButton" Content="DELETE" Style="{StaticResource ButtonStyle}" Margin="195,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="DeleteOreButton_Click" Width="75" Height="25" FontSize="10" FontWeight="Bold"/>
 
-                    <Button x:Name="AddNewOreButton" Content="ADD NEW ORE" Style="{StaticResource ButtonStyle}" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="AddNewOreButton_Click" Background="DarkSlateGray" Width="100" Height="25"/>
+                    <Button x:Name="AddNewOreButton" Content="ADD NEW ORE" Style="{StaticResource ButtonStyle}" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="AddNewOreButton_Click" Background="DarkSlateGray" Width="100" Height="25" FontWeight="Bold" FontSize="10"/>
 
                     <DataGrid Name="ExpRatioDataGrid" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single"
                               Height="372" VerticalAlignment="Top" AutoGenerateColumns="False"

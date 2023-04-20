@@ -16,7 +16,35 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Padding" Value="10,5"/>
             <Setter Property="Margin" Value="5"/>
+            <Setter Property="Template" Value="{DynamicResource ButtonBase}"/>
         </Style>
+        <ControlTemplate x:Key="ButtonBase" TargetType="{x:Type ButtonBase}">
+            <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True" CornerRadius="8">
+                <ContentPresenter x:Name="contentPresenter" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" ContentStringFormat="{TemplateBinding ContentStringFormat}" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="Button.IsDefaulted" Value="True">
+                    <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" TargetName="border" Value="#FFBEE6FD"/>
+                    <Setter Property="BorderBrush" TargetName="border" Value="#FF3C7FB1"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" TargetName="border" Value="#FFC4E5F6"/>
+                    <Setter Property="BorderBrush" TargetName="border" Value="#FF2C628B"/>
+                </Trigger>
+                <Trigger Property="ToggleButton.IsChecked" Value="True">
+                    <Setter Property="Background" TargetName="border" Value="#FFBCDDEE"/>
+                    <Setter Property="BorderBrush" TargetName="border" Value="#FF245A83"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" TargetName="border" Value="#FFF4F4F4"/>
+                    <Setter Property="BorderBrush" TargetName="border" Value="#FFADB2B5"/>
+                    <Setter Property="Foreground" Value="#FF838383"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -36,6 +64,6 @@
         <Label Content="Exp per ore:" Grid.Column="0" Grid.Row="1" Style="{StaticResource LabelStyle}"/>
         <TextBox x:Name="ExpPerOreTextBox" Grid.Column="1" Grid.Row="1" Margin="10"/>
 
-        <Button Content="SAVE" Grid.Row="2" HorizontalAlignment="Center" Margin="0,10,0,54" Click="AddButton_Click" Width="73" Style="{StaticResource ButtonStyle}"/>
+        <Button Content="SAVE" Grid.Row="2" HorizontalAlignment="Center" Margin="0,10,0,54" Click="AddButton_Click" Width="73" Style="{DynamicResource ButtonStyle}" FontWeight="Bold"/>
     </Grid>
 </Window>
