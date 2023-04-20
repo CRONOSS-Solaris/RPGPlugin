@@ -15,7 +15,13 @@ namespace RPGPlugin.PointManagementSystem
         /// Contains the named object of your points and the value
         /// </summary>
         public abstract ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; }
+        public virtual bool InitComplete { get; set; }
 
+        public virtual void init()
+        {
+            InitComplete = true;
+        }
+        
         /// <summary>
         /// Thread safe FIFO collection for storing points during server startup and between calculations.
         /// </summary>
@@ -23,7 +29,7 @@ namespace RPGPlugin.PointManagementSystem
             new ConcurrentQueue<ExperienceAction>();
 
         /// <summary>
-        /// KVP lookups for larger collections are not the best for performance, Dictionary uses hashtables at
+        /// KVP lookups for larger collections are not the best for performance, Dictionary uses hash tables at
         /// the source and will keep the access rate constant regardless of how much data is inside.   
         /// </summary>
         protected virtual Dictionary<string, double> xpTable { get; set; } = new Dictionary<string, double>();
@@ -46,13 +52,14 @@ namespace RPGPlugin.PointManagementSystem
         /// <summary>
         /// Process all current XP in the queue and begins the processing timer.
         /// </summary>
-        public void Start()
+        public virtual void QueueStart()
         {
+            if (!InitComplete) init();
             _queueTimer.Interval = TimeSpan.FromSeconds(_queueFrequency).TotalMilliseconds;
             _queueTimer.Elapsed += ProcessXPCollected;
             UpdateLookupTable(null,null);
             ProcessXPCollected(null, null);
-            Roles.Instance.minerConfig.ExpRatio.CollectionChanged += UpdateLookupTable;
+            ExpRatio.CollectionChanged += UpdateLookupTable;
             _queueTimer.Start();
         }
 
@@ -66,9 +73,8 @@ namespace RPGPlugin.PointManagementSystem
                 xpTable.Add(item.Key,item.Value);
         }
 
-        /// <summary>
+        
         /// Switch processing the XP queue to Async.
-        /// </summary>
         private async void ProcessXPCollected(object state, ElapsedEventArgs elapsedEventArgs)
         {
             await ProcessXpCollectedAsync();
@@ -82,17 +88,28 @@ namespace RPGPlugin.PointManagementSystem
         /// <summary>
         /// Returns the amount of xp points required to reach the next level.
         /// </summary>
-        /// <param name="id">Player id</param>
-        /// <returns></returns>
-        public abstract int ExpToLevelUp(long id);
+        /// <param name="steamID">Player SteamID</param>
+        /// <returns>int</returns>
+        public abstract int ExpToLevelUp(ulong steamID);
 
         /// <summary>
         /// Create your own algorithm to reward points and assign the points to the correct
         /// class inside the PlayerManagers[ID]._PlayersData.YOURCLASSHERE.  This is awaitable!! 
         /// </summary>
-        /// <param name="id">Player ID of the player to receive the XP</param>
+        /// <param name="steamID">Player Steam ID</param>
         /// <param name="exp">Amount of XP</param>
         /// <returns>Task.CompletedTask</returns>
-        protected abstract Task AddClassExp(long id, double exp);
+        protected abstract Task AddClassExp(ulong steamID, double exp);
+
+        /// <summary>
+        /// Called after the server is up and running.
+        /// </summary>
+        public abstract void Loaded();
+
+        /// <summary>
+        /// Called when the server is going offline.
+        /// </summary>
+        public abstract void Unloading();
+
     }
 }

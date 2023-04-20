@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using NLog.Fluent;
+using Sandbox.Game.Multiplayer;
 using Sandbox.Game.World;
 
 namespace RPGPlugin.Utils
@@ -31,14 +31,15 @@ namespace RPGPlugin.Utils
 
                     if (!File.Exists(filePath))
                     {
-                        if (!MySession.Static.Players.TryGetPlayerBySteamId(steamID, out MyPlayer player))
+                        long playerId = Sync.Players.TryGetIdentityId(steamID);
+                        if (playerId == 0)
                         {
                             // Add a check later to retry and get playerID at a later point and not fail here.
-                            Roles.Log.Error("Unable to get player by SteamID, new player file creation failed.");
+                            Roles.Log.Error("Unable to get player by SteamID, a new file will be created.");
                         }
 
                         PlayerData newData = new PlayerData();
-                        newData.CreateNew(steamID, player.Identity.IdentityId);
+                        newData.CreateNew(steamID, playerId);
                         return newData;
                     }
 

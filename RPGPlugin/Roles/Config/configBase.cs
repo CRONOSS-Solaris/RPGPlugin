@@ -1,42 +1,61 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace RPGPlugin
 {
-    public sealed class MinerConfig
+    /// <summary>
+    /// Base class for all class configurations.
+    /// </summary>
+    /// <ToLoad name="GetConfig()">GetConfig().Result returns config data in json format.  Null if no config file or there was an error loading it.</ToLoad>
+    /// <ToSave name="SaveConfig(string data)">SaveConfig(string data) saves your data to its own configuration file.  Data must be in json format.</ToSave>
+    public abstract class configBase
     {
-        // Definition of the ExpRatio property, which stores experience point values for individual minerals
         private static readonly object _lock = new object();
         private static TimeSpan _lockTimeOut = TimeSpan.FromMilliseconds(5000);
         private const string storagePath = "Instance/RPGPlugin/";
-        private static string configFilePath = Path.Combine(storagePath, "MinerConfig.json");
-        public ObservableCollection<KeyValuePair<string, double>> ExpRatio = new ObservableCollection<KeyValuePair<string, double>>();
+        private static string configFilePath;
         
-        private static MinerConfig defaultConfig = new MinerConfig
-        {
-            ExpRatio = new ObservableCollection<KeyValuePair<string, double>>
-            {
-                new KeyValuePair<string, double>( "stone",     0.0013 ),
-                new KeyValuePair<string, double>( "Silicon",   0.12   ),
-                new KeyValuePair<string, double>( "Iron",      0.13   ),
-                new KeyValuePair<string, double>( "Nickel",    0.13   ),
-                new KeyValuePair<string, double>( "Cobalt",    0.18   ),
-                new KeyValuePair<string, double>( "Magnesium", 0.24   ),
-                new KeyValuePair<string, double>( "Silver",    0.15   ),
-                new KeyValuePair<string, double>( "Gold",      0.25   ),
-                new KeyValuePair<string, double>( "Platinum",  0.28   ),
-                new KeyValuePair<string, double>( "Uranium",   0.30   ),
-                new KeyValuePair<string, double>( "Ice",       0.135  )
-            }
-        };
+        
+        /// <summary>
+        /// Store your class point type and point value per type in this collection.
+        /// </summary>
+        public abstract ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; }
 
-        // Method used to load the configuration file
-        public async Task LoadMinerConfig()
+        /// <summary>
+        /// Initializer, always start with base.int(). This sets the config file save location and name.
+        /// </summary>
+        public virtual void init()
+        {
+            string type = GetType().Name;
+            configFilePath = Path.Combine(storagePath, type + ".cfg");
+        }
+
+        /// <summary>
+        /// GetConfig().Results returns your your config data as json. 
+        /// </summary>
+        public abstract void LoadConfig();
+        
+        /// <summary>
+        /// The following SHOULD work in most cases: 
+        /// string jsonData = JsonConvert.SerializeObject(this, Formatting.Indented);
+        /// await SaveConfig(jsonData);
+        /// </summary>
+        public abstract Task SaveConfig();
+        
+        /// <summary>
+        /// Call LoadConfig to load your config settings in Json format.
+        /// Returns NULL if the file doesnt exist or there was a problem.
+        /// </summary>
+        protected virtual async Task<string> GetConfig()
+        {
+            return await Task.FromResult(GetConfigAsync().Result);
+        }
+
+        private Task<string> GetConfigAsync()
         {
             bool lockTaken = false;
             try
@@ -50,7 +69,8 @@ namespace RPGPlugin
                     if (!File.Exists(configFilePath))
                     {
                         // Apply the default, no point saving a copy of defaultConfig.  Plus in the lock it cant be saved.
-                        await LoadSettings(defaultConfig);
+                        // Nothing to do, will save first version of config when the save their first settings.
+                        return Task.FromResult<string>(null);
                     }
                     else
                     {
@@ -58,10 +78,7 @@ namespace RPGPlugin
                         try
                         {
                             string jsonData = File.ReadAllText(configFilePath);
-                            MinerConfig userConfig = JsonConvert.DeserializeObject<MinerConfig>(jsonData);
-                            
-                            // Process newly loaded settings
-                            await LoadSettings(userConfig);
+                            return Task.FromResult(jsonData);
 
                         }
                         catch (Exception e)
@@ -69,39 +86,34 @@ namespace RPGPlugin
                             File.Move(configFilePath, Path.Combine(storagePath, "MinerConfig_ERROR.json")); // Renames the file.
                             Roles.Log.Error($"There was an issue loading the MinerConfig.json configuration file.  The file has renamed too MinerConfig_ERROR.json and a clean default Miner configuration file created.");
                             Roles.Log.Error(e);
-                            await LoadSettings(defaultConfig);
+                            return Task.FromResult<string>(null);
                         }
                     }
                 }
                 else
                 {
                     // Unable to get lock and load data!
-                    Roles.Log.Error(
-                        $"Unable to load MinerConfig.json, {configFilePath} is locked by another process. Using default values.");
-                    await LoadSettings(defaultConfig);
+                    Roles.Log.Error($"Unable to load MinerConfig.json, {configFilePath} is locked by another process. Using default values.");
+                    return Task.FromResult<string>(null);
                 }
             }
             catch (Exception e)
             {
                 Roles.Log.Error(e);
-                await LoadSettings(defaultConfig);
+                return Task.FromResult<string>(null);
             }
             finally
             {
                 if (lockTaken)
                     Monitor.Exit(_lock);
             }
-            
         }
-
-        private Task LoadSettings(MinerConfig config)
-        {
-            ExpRatio = config.ExpRatio;
-            return Task.CompletedTask;
-        }
-
-        // Method used to save the configuration file
-        public Task<bool> SaveMinerConfig()
+        
+        /// <summary>
+        /// Saves your config, returns true when successful or false when their was an error.
+        /// </summary>
+        /// <param name="data">Your config file in json format.</param>
+        protected Task<bool> SaveConfig(string data)
         {
             // Task instead of void, run IO process in await.
             // return bool.  Doesnt need to be used but can be if needed.
@@ -114,9 +126,7 @@ namespace RPGPlugin
                 
                 try
                 {
-                    // Serialize the configuration to JSON and save it
-                    string jsonData = JsonConvert.SerializeObject(this, Formatting.Indented);
-                    File.WriteAllText(configFilePath, jsonData);
+                    File.WriteAllText(configFilePath, data);
                     return Task.FromResult(true);
                 }
                 catch (Exception e)
@@ -139,10 +149,3 @@ namespace RPGPlugin
         }
     }
 }
-
-
-
-
-
-
-
