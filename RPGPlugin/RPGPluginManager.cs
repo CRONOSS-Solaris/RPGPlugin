@@ -11,7 +11,7 @@ namespace RPGPlugin
     {
         public PlayerData _PlayerData { get; set; } = new PlayerData();
         
-        public enum FromRoles {NoRole, Miner, Warrior}
+        public enum FromRoles {NoRole, Miner, Warrior, Hunter}
 
         public async void InitAsync(ulong steamId)
         {

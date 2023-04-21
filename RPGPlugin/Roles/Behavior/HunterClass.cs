@@ -45,13 +45,71 @@ namespace RPGPlugin.PointManagementSystem
 
         private void BlockDestroyedHandler(object target, ref MyDamageInformation info)
         {
-            // Implement logic for handling block destruction and granting experience points
+            if (target is MyCubeBlock block)
+            {
+                if (block.IDModule.GetUserRelationToOwner(info.AttackerId) != MyRelationsBetweenPlayerAndBlock.Friends)
+                {
+                    if (IsOwnedByNPC(block))
+                    {
+                        switch (block.CubeGrid.GridSizeEnum)
+                        {
+                            case MyCubeSize.Small:
+                                _ProcessQueue.Enqueue(new ExperienceAction
+                                {
+                                    ownerID = info.AttackerId,
+                                    subType = "EnemySmallBlock",
+                                    amount = info.Amount
+                                });
+                                break;
+                            case MyCubeSize.Large:
+                                _ProcessQueue.Enqueue(new ExperienceAction
+                                {
+                                    ownerID = info.AttackerId,
+                                    subType = "EnemyLargeBlock",
+                                    amount = info.Amount
+                                });
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        private bool IsOwnedByNPC(MyCubeBlock block)
+        {
+            long ownerId = block.OwnerId;
+            ulong identityId = (ulong)Math.Abs(ownerId);
+            MyPlayer player = null;
+            MySession.Static.Players.TryGetPlayerById(new MyPlayer.PlayerId(identityId), out player);
+            return player?.IsBot ?? false;
         }
 
         /// <inheritdoc />
         protected override async Task ProcessXpCollectedAsync()
         {
-            // Similar to the WarriorClass, but handle experience actions for the HunterClass
+            if (_queueInProcess) return;
+
+            _queueInProcess = true;
+
+            while (_ProcessQueue.Count > 0)
+            {
+                if (!_ProcessQueue.TryDequeue(out ExperienceAction queueData)) continue;
+
+                ulong steamID = Sync.Players.TryGetSteamId(queueData.ownerID);
+
+                Dictionary<string, double> expRatioDict = ExpRatio.ToDictionary(x => x.Key, x => x.Value);
+                if (!expRatioDict.ContainsKey(queueData.subType)) continue;
+
+                if (!PlayerManagers.ContainsKey(steamID)) continue;
+
+                if (PlayerManagers[steamID].GetRole() != PlayerManager.FromRoles.Hunter) break;
+
+                if (ExpRatio.Count == 0) break;
+                if (!PlayerManagers.ContainsKey(steamID)) break;
+
+                await AddClassExp(steamID, expRatioDict[queueData.subType]);
+            }
+            _queueInProcess = false;
         }
 
         private double CalculateExpFromAnimalKills(long playerId)
