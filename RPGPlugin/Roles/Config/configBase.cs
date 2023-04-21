@@ -17,7 +17,6 @@ namespace RPGPlugin
         private static readonly object _lock = new object();
         private static TimeSpan _lockTimeOut = TimeSpan.FromMilliseconds(5000);
         private const string storagePath = "Instance/RPGPlugin/";
-        private static string configFilePath;
         
         
         /// <summary>
@@ -30,8 +29,13 @@ namespace RPGPlugin
         /// </summary>
         public virtual void init()
         {
+            
+        }
+
+        protected virtual string GetFileName()
+        {
             string type = GetType().Name;
-            configFilePath = Path.Combine(storagePath, type + ".cfg");
+            return Path.Combine(storagePath, GetType().Name + ".cfg");
         }
 
         /// <summary>
@@ -66,7 +70,7 @@ namespace RPGPlugin
                     if (!Directory.Exists(storagePath))
                         Directory.CreateDirectory(storagePath);
 
-                    if (!File.Exists(configFilePath))
+                    if (!File.Exists(GetFileName()))
                     {
                         // Apply the default, no point saving a copy of defaultConfig.  Plus in the lock it cant be saved.
                         // Nothing to do, will save first version of config when the save their first settings.
@@ -77,13 +81,13 @@ namespace RPGPlugin
                         // If the file exists, load it
                         try
                         {
-                            string jsonData = File.ReadAllText(configFilePath);
+                            string jsonData = File.ReadAllText(GetFileName());
                             return Task.FromResult(jsonData);
 
                         }
                         catch (Exception e)
                         {
-                            File.Move(configFilePath, Path.Combine(storagePath, "MinerConfig_ERROR.json")); // Renames the file.
+                            File.Move(GetFileName(), Path.Combine(storagePath, "MinerConfig_ERROR.json")); // Renames the file.
                             Roles.Log.Error($"There was an issue loading the MinerConfig.json configuration file.  The file has renamed too MinerConfig_ERROR.json and a clean default Miner configuration file created.");
                             Roles.Log.Error(e);
                             return Task.FromResult<string>(null);
@@ -93,7 +97,7 @@ namespace RPGPlugin
                 else
                 {
                     // Unable to get lock and load data!
-                    Roles.Log.Error($"Unable to load MinerConfig.json, {configFilePath} is locked by another process. Using default values.");
+                    Roles.Log.Error($"Unable to load MinerConfig.json, {GetFileName()} is locked by another process. Using default values.");
                     return Task.FromResult<string>(null);
                 }
             }
@@ -126,7 +130,7 @@ namespace RPGPlugin
                 
                 try
                 {
-                    File.WriteAllText(configFilePath, data);
+                    File.WriteAllText(GetFileName(), data);
                     return Task.FromResult(true);
                 }
                 catch (Exception e)
