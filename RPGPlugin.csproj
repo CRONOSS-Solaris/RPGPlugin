@@ -141,11 +141,11 @@
     <Compile Include="RPGPlugin\RPGPluginManager.cs" />
     <Compile Include="RPGPlugin\RPGPlugin.cs" />
     <Compile Include="RPGPlugin\RPGPluginCommands.cs" />
-    <Compile Include="RPGPlugin\Torch GUI\EditOreWindow.xaml.cs">
-      <DependentUpon>EditOreWindow.xaml</DependentUpon>
+    <Compile Include="RPGPlugin\Torch GUI\EditItemWindow.xaml.cs">
+      <DependentUpon>EditItemWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="RPGPlugin\Torch GUI\AddOreWindow.xaml.cs">
-      <DependentUpon>AddOreWindow.xaml</DependentUpon>
+    <Compile Include="RPGPlugin\Torch GUI\AddItemWindow.xaml.cs">
+      <DependentUpon>AddItemWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="RPGPlugin\Torch GUI\RPGPluginControl.xaml.cs">
       <DependentUpon>RPGPluginControl.xaml</DependentUpon>
@@ -179,11 +179,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="RPGPlugin\Torch GUI\EditOreWindow.xaml">
+    <Page Include="RPGPlugin\Torch GUI\EditItemWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="RPGPlugin\Torch GUI\AddOreWindow.xaml">
+    <Page Include="RPGPlugin\Torch GUI\AddItemWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -196,9 +196,7 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="RPGPlugin\Roles\" />
-  </ItemGroup>
+  <ItemGroup />
   <Target Name="Zip" BeforeTargets="AfterBuild">
     <MakeDir Directories="$(SolutionDir)\Build\" />
     <ZipDirectory SourceDirectory="$(OutputPath)" DestinationFile="$(SolutionDir)\Build\$(MSBuildProjectName).zip" Overwrite="true" />

@@ -124,7 +124,20 @@
             </TabItem>
 
             <TabItem Header="Warrior" Style="{StaticResource TabItemStyle}">
-                <Image Height="371" Source="/RPGPlugin;component/comingsoon.png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
+                <Grid>
+                    <Button x:Name="EditWarriorDefinitionButton" Content="EDIT" Style="{StaticResource ButtonStyle}" Margin="115,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="EditWarriorDefinitionButton_Click" Width="75" Height="25" FontSize="10" FontWeight="Bold"/>
+                    <Button x:Name="DeleteWarriorDefinitionButton" Content="DELETE" Style="{StaticResource ButtonStyle}" Margin="195,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="DeleteWarriorDefinitionButton_Click" Width="75" Height="25" FontSize="10" FontWeight="Bold"/>
+                    <Button x:Name="AddNewWarriorDefinitionButton" Content="ADD NEW" Style="{StaticResource ButtonStyle}" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="AddNewWarriorDefinitionButton_Click" Background="DarkSlateGray" Width="100" Height="25" FontWeight="Bold" FontSize="10"/>
+
+                    <DataGrid Name="WarriorDataGrid" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single"
+                              Height="372" VerticalAlignment="Top" AutoGenerateColumns="False"
+                              Margin="10,39,0,-1" AlternatingRowBackground="Snow" HorizontalAlignment="Left" Width="260" Style="{StaticResource DataGridStyle}" Background="#FFF0F0F0" FontWeight="Bold" >
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="NAME" Binding="{Binding Path=Key}" IsReadOnly="True" Width="*" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" />
+                            <DataGridTextColumn Header="EXPERIENCE" Binding="{Binding Path=Value}" IsReadOnly="True" Width="*" HeaderStyle="{StaticResource DataGridColumnHeaderStyle2}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
             </TabItem>
         </TabControl>
     </Grid>
