@@ -38,10 +38,37 @@ namespace RPGPlugin.PointManagementSystem
         /// <inheritdoc />
         protected override double _queueFrequency { get; set; } = 10;
 
-        private void AnimalKilledHandler(object target, ref MyDamageInformation info)
+        private void OnCharacterDamaged(object target, ref MyDamageInformation damageInfo)
         {
-            // Implement logic for handling animal kills and granting experience points
+            if (target is IMyCharacter character)
+            {
+                string characterDisplayName = character.DisplayName;
+
+                // Lista nazw zwierząt, które można rozszerzyć według potrzeb.
+                List<string> animalNames = new List<string> { "Wolf", "Cyberhound", "Spider", "Sabiroid" };
+
+                bool isAnimal = animalNames.Any(animalName => characterDisplayName.Contains(animalName));
+
+                if (isAnimal)
+                {
+                    float characterHealth = character.Integrity;
+
+                    if (damageInfo.Amount >= characterHealth)
+                    {
+                        ulong attackerPlayerId = (ulong)damageInfo.AttackerId;
+                        var playerId = new Sandbox.Game.World.MyPlayer.PlayerId(attackerPlayerId);
+                        if (MySession.Static.Players.TryGetPlayerById(playerId, out MyPlayer killer))
+                        {
+                            if (killer.Controller.ControlledEntity.Entity.EntityId == character.EntityId && PlayerManagers[(ulong)killer.Identity.IdentityId].GetRole() == PlayerManager.FromRoles.Hunter)
+                            {
+                                AddClassExp((int)killer.Identity.IdentityId, ExpRatio["Animals"]);
+                            }
+                        }
+                    }
+                }
+            }
         }
+
 
         private void BlockDestroyedHandler(object target, ref MyDamageInformation info)
         {
@@ -159,7 +186,7 @@ namespace RPGPlugin.PointManagementSystem
         /// <inheritdoc /> 
         public override void Loaded()
         {
-            MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(0, AnimalKilledHandler);
+            MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(0, OnCharacterDamaged);
             MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(0, BlockDestroyedHandler);
         }
 
