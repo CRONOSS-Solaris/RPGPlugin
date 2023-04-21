@@ -28,7 +28,7 @@ namespace RPGPlugin
         {
             string data = GetConfig().Result;
             if (data == null) return;
-            MinerConfig classConfig = JsonConvert.DeserializeObject<MinerConfig>(data);
+            WarriorConfig classConfig = JsonConvert.DeserializeObject<WarriorConfig>(data);
             ExpRatio = classConfig.ExpRatio;
         }
 

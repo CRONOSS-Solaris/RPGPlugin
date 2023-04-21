@@ -125,9 +125,9 @@ namespace RPGPlugin
 
         private async void EditWarriorDefinitionButton_Click(object sender, RoutedEventArgs e)
         {
-            if (ExpRatioDataGrid.SelectedItem != null)
+            if (WarriorDataGrid.SelectedItem != null)
             {
-                var selectedItem = (KeyValuePair<string, double>)ExpRatioDataGrid.SelectedItem;
+                var selectedItem = (KeyValuePair<string, double>)WarriorDataGrid.SelectedItem;
                 var editItemWindow = new EditItemWindow { ItemType = ItemType.WarriorDefinition, Title = "RPGPLUGIN - EDIT WARRIOR DEFINITION" };
 
                 editItemWindow.SetItemName(selectedItem.Key);
@@ -182,7 +182,7 @@ namespace RPGPlugin
             {
                 MessageBoxResult result;
 
-                var selectedOre = (KeyValuePair<string, double>)ExpRatioDataGrid.SelectedItem;
+                var selectedOre = (KeyValuePair<string, double>)WarriorDataGrid.SelectedItem;
                 result = MessageBox.Show($"Are you sure you want to delete the WarriorDefinition '{selectedOre.Key}'?", "Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (result != MessageBoxResult.Yes) return;
 
