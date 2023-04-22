@@ -15,9 +15,10 @@ namespace RPGPlugin
         public override void init()
         {
             // Initialize class with default settings, will be replaced if a config file is loaded.
-            ExpRatio.Add(new KeyValuePair<string, double>("Animals",  0.0013 ));
-            ExpRatio.Add(new KeyValuePair<string, double>("SmallBlock",    2 ));
-            ExpRatio.Add(new KeyValuePair<string, double>("LargeBlock",   10 ));
+            ExpRatio.Add(new KeyValuePair<string, double>("Wolf",        0.0013 ));
+            ExpRatio.Add(new KeyValuePair<string, double>("Spider",      0.0013 ));
+            ExpRatio.Add(new KeyValuePair<string, double>("SmallBlock",       2 ));
+            ExpRatio.Add(new KeyValuePair<string, double>("LargeBlock",      10 ));
         }
 
         public override void LoadConfig()
