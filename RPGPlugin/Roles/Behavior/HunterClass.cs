@@ -1,199 +1,202 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
-using RPGPlugin.Utils;
-using Sandbox.Game;
-using Sandbox.Game.Entities;
-using Sandbox.Game.Multiplayer;
-using Sandbox.Game.World;
-using Sandbox.ModAPI;
-using VRage.Game;
-using VRage.Game.ModAPI;
-using VRage.Game.ModAPI.Ingame;
-using VRageMath;
-using static RPGPlugin.Roles;
-using IMyCubeGrid = VRage.Game.ModAPI.IMyCubeGrid;
-using IMySlimBlock = VRage.Game.ModAPI.Ingame.IMySlimBlock;
-
-namespace RPGPlugin.PointManagementSystem
-{
-    public class HunterClass : ClassesBase
-    {
-        /// <inheritdoc />
-        /// Point to your classConfig ExpRatio collection
-        public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } =
-            new ObservableCollection<KeyValuePair<string, double>>();
-
-        /// <inheritdoc /> 
-        public override void init()
-        {
-            HunerConfig config = (HunerConfig)classConfigs["HunerConfig"];
-            if (config != null)
-                ExpRatio = config.ExpRatio;
-            base.init();
-        }
-
-        /// <inheritdoc />
-        protected override double _queueFrequency { get; set; } = 10;
-
-        private void OnCharacterDamaged(object target, ref MyDamageInformation damageInfo)
-        {
-            if (target is IMyCharacter character)
-            {
-                string characterDisplayName = character.DisplayName;
-
-                // Lista nazw zwierząt, które można rozszerzyć według potrzeb.
-                List<string> animalNames = new List<string> { "Wolf", "Cyberhound", "Spider", "Sabiroid" };
-
-                bool isAnimal = animalNames.Any(animalName => characterDisplayName.Contains(animalName));
-
-                if (isAnimal)
-                {
-                    float characterHealth = character.Integrity;
-
-                    if (damageInfo.Amount >= characterHealth)
-                    {
-                        ulong attackerPlayerId = (ulong)damageInfo.AttackerId;
-                        var playerId = new Sandbox.Game.World.MyPlayer.PlayerId(attackerPlayerId);
-                        if (MySession.Static.Players.TryGetPlayerById(playerId, out MyPlayer killer))
-                        {
-                            if (killer.Controller.ControlledEntity.Entity.EntityId == character.EntityId && PlayerManagers[(ulong)killer.Identity.IdentityId].GetRole() == PlayerManager.FromRoles.Hunter)
-                            {
-                                AddClassExp((int)killer.Identity.IdentityId, ExpRatio["Animals"]);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-
-        private void BlockDestroyedHandler(object target, ref MyDamageInformation info)
-        {
-            if (target is MyCubeBlock block)
-            {
-                if (block.IDModule.GetUserRelationToOwner(info.AttackerId) != MyRelationsBetweenPlayerAndBlock.Friends)
-                {
-                    if (IsOwnedByNPC(block))
-                    {
-                        switch (block.CubeGrid.GridSizeEnum)
-                        {
-                            case MyCubeSize.Small:
-                                _ProcessQueue.Enqueue(new ExperienceAction
-                                {
-                                    ownerID = info.AttackerId,
-                                    subType = "EnemySmallBlock",
-                                    amount = info.Amount
-                                });
-                                break;
-                            case MyCubeSize.Large:
-                                _ProcessQueue.Enqueue(new ExperienceAction
-                                {
-                                    ownerID = info.AttackerId,
-                                    subType = "EnemyLargeBlock",
-                                    amount = info.Amount
-                                });
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-        
-        private bool IsOwnedByNPC(MyCubeBlock block)
-        {
-            long ownerId = block.OwnerId;
-            ulong identityId = (ulong)Math.Abs(ownerId);
-            MyPlayer player = null;
-            MySession.Static.Players.TryGetPlayerById(new MyPlayer.PlayerId(identityId), out player);
-            return player?.IsBot ?? false;
-        }
-
-        /// <inheritdoc />
-        protected override async Task ProcessXpCollectedAsync()
-        {
-            if (_queueInProcess) return;
-
-            _queueInProcess = true;
-
-            while (_ProcessQueue.Count > 0)
-            {
-                if (!_ProcessQueue.TryDequeue(out ExperienceAction queueData)) continue;
-
-                ulong steamID = Sync.Players.TryGetSteamId(queueData.ownerID);
-
-                Dictionary<string, double> expRatioDict = ExpRatio.ToDictionary(x => x.Key, x => x.Value);
-                if (!expRatioDict.ContainsKey(queueData.subType)) continue;
-
-                if (!PlayerManagers.ContainsKey(steamID)) continue;
-
-                if (PlayerManagers[steamID].GetRole() != PlayerManager.FromRoles.Hunter) break;
-
-                if (ExpRatio.Count == 0) break;
-                if (!PlayerManagers.ContainsKey(steamID)) break;
-
-                await AddClassExp(steamID, expRatioDict[queueData.subType]);
-            }
-            _queueInProcess = false;
-        }
-
-        private double CalculateExpFromAnimalKills(long playerId)
-        {
-            double exp = 0;
-            // Implement logic for calculating exp from killing animals
-            return exp;
-        }
-
-        private double CalculateExpFromDestroyedBlocks(long playerId)
-        {
-            double exp = 0;
-            // Implement logic for calculating exp from destroying enemy blocks (of NPC)
-            return exp;
-        }
-
-        /// <inheritdoc /> 
-        public override int ExpToLevelUp(ulong steamID)
-        {
-            return 1; // Temp placeholder.
-        }
-
-        /// <inheritdoc /> 
-        protected override Task AddClassExp(ulong steamID, double exp)
-        {
-            if (PlayerManagers[steamID]._PlayerData.HunterExp + exp >= ExpToLevelUp(steamID))
-            {
-                PlayerManagers[steamID]._PlayerData.HunterLevel++;
-                PlayerManagers[steamID]._PlayerData.HunterExp = Math.Round(PlayerManagers[steamID]._PlayerData.HunterExp + exp) - ExpToLevelUp(steamID);
-
-                if (Instance.Config.BroadcastLevelUp)
-                {
-                    string name =
-                        MySession.Static.Players.TryGetIdentityNameFromSteamId(PlayerManagers[steamID]._PlayerData
-                            .SteamId);
-                    ChatManager.SendMessageAsOther("Roles Manager", $"{name} is now a level {PlayerManagers[steamID]._PlayerData.HunterLevel} Hunter!", Color.ForestGreen);
-                }
-            }
-            else
-            {
-                PlayerManagers[steamID]._PlayerData.HunterExp += exp;
-            }
-
-            return Task.CompletedTask;
-        }
-        
-        /// <inheritdoc /> 
-        public override void Loaded()
-        {
-            MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(0, OnCharacterDamaged);
-            MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(0, BlockDestroyedHandler);
-        }
-
-        /// <inheritdoc /> 
-        public override void Unloading()
-        {
-            
-        }
-    }
-}
+﻿// using System;
+// using System.Collections.Generic;
+// using System.Collections.ObjectModel;
+// using System.Linq;
+// using System.Threading.Tasks;
+// using RPGPlugin.Utils;
+// using Sandbox.Game;
+// using Sandbox.Game.Entities;
+// using Sandbox.Game.Multiplayer;
+// using Sandbox.Game.World;
+// using Sandbox.ModAPI;
+// using VRage.Game;
+// using VRage.Game.ModAPI;
+// using VRage.Game.ModAPI.Ingame;
+// using VRageMath;
+// using static RPGPlugin.Roles;
+// using IMyCubeGrid = VRage.Game.ModAPI.IMyCubeGrid;
+// using IMySlimBlock = VRage.Game.ModAPI.Ingame.IMySlimBlock;
+//
+// namespace RPGPlugin.PointManagementSystem
+// {
+//     public class HunterClass : ClassesBase
+//     {
+//         /// <inheritdoc />
+//         /// Point to your classConfig ExpRatio collection
+//         public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } =
+//             new ObservableCollection<KeyValuePair<string, double>>();
+//
+//         /// <inheritdoc /> 
+//         public override void init()
+//         {
+//             HunerConfig config = (HunerConfig)classConfigs["HunerConfig"];
+//             if (config != null)
+//                 ExpRatio = config.ExpRatio;
+//             base.init();
+//         }
+//
+//         /// <inheritdoc />
+//         protected override double _queueFrequency { get; set; } = 10;
+//         
+//         private void OnCharacterDamaged(object target, ref MyDamageInformation damageInfo)
+//         {
+//             if (target is IMyCharacter character)
+//             {
+//                 string characterDisplayName = character.DisplayName;
+//
+//                 // Lista nazw zwierząt, które można rozszerzyć według potrzeb.
+//                 List<string> animalNames = new List<string> { "Wolf", "Cyberhound", "Spider", "Sabiroid" };
+//
+//                 bool isAnimal = animalNames.Any(animalName => characterDisplayName.Contains(animalName));
+//
+//                 if (isAnimal)
+//                 {
+//                     float characterHealth = character.Integrity;
+//
+//                     if (damageInfo.Amount >= characterHealth)
+//                     {
+//                         var playerId = new Sandbox.Game.World.MyPlayer.PlayerId(damageInfo.AttackerId);
+//                         if (MySession.Static.Players.TryGetPlayerById(playerId, out MyPlayer killer))
+//                         {
+//                             if (killer.Controller.ControlledEntity.Entity.EntityId == character.EntityId && PlayerManagers[(ulong)killer.Identity.IdentityId].GetRole() == PlayerManager.FromRoles.Hunter)
+//                             {
+//                                 _ProcessQueue.Enqueue(new ExperienceAction
+//                                 {
+//                                     ownerID = damageInfo.AttackerId,
+//                                     subType = "Animals",
+//                                     amount = damageInfo.Amount
+//                                 });
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//         
+//         private void BlockDestroyedHandler(object target, ref MyDamageInformation info)
+//         {
+//             if (target is MyCubeBlock block)
+//             {
+//                 if (block.IDModule.GetUserRelationToOwner(info.AttackerId) != MyRelationsBetweenPlayerAndBlock.Friends)
+//                 {
+//                     if (IsOwnedByNPC(block))
+//                     {
+//                         switch (block.CubeGrid.GridSizeEnum)
+//                         {
+//                             case MyCubeSize.Small:
+//                                 _ProcessQueue.Enqueue(new ExperienceAction
+//                                 {
+//                                     ownerID = info.AttackerId,
+//                                     subType = "EnemySmallBlock",
+//                                     amount = info.Amount
+//                                 });
+//                                 break;
+//                             case MyCubeSize.Large:
+//                                 _ProcessQueue.Enqueue(new ExperienceAction
+//                                 {
+//                                     ownerID = info.AttackerId,
+//                                     subType = "EnemyLargeBlock",
+//                                     amount = info.Amount
+//                                 });
+//                                 break;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//         
+//         private bool IsOwnedByNPC(MyCubeBlock block)
+//         {
+//             long ownerId = block.OwnerId;
+//             ulong identityId = (ulong)Math.Abs(ownerId);
+//             MyPlayer player = null;
+//             MySession.Static.Players.TryGetPlayerById(new MyPlayer.PlayerId(identityId), out player);
+//             return player?.IsBot ?? false;
+//         }
+//
+//         /// <inheritdoc />
+//         protected override async Task ProcessXpCollectedAsync()
+//         {
+//             if (_queueInProcess) return;
+//
+//             _queueInProcess = true;
+//
+//             while (_ProcessQueue.Count > 0)
+//             {
+//                 if (!_ProcessQueue.TryDequeue(out ExperienceAction queueData)) continue;
+//
+//                 ulong steamID = Sync.Players.TryGetSteamId(queueData.ownerID);
+//
+//                 Dictionary<string, double> expRatioDict = ExpRatio.ToDictionary(x => x.Key, x => x.Value);
+//                 if (!expRatioDict.ContainsKey(queueData.subType)) continue;
+//
+//                 if (!PlayerManagers.ContainsKey(steamID)) continue;
+//
+//                 if (PlayerManagers[steamID].GetRole() != PlayerManager.FromRoles.Hunter) break;
+//
+//                 if (ExpRatio.Count == 0) break;
+//                 if (!PlayerManagers.ContainsKey(steamID)) break;
+//
+//                 await AddClassExp(steamID, expRatioDict[queueData.subType]);
+//             }
+//             _queueInProcess = false;
+//         }
+//
+//         private double CalculateExpFromAnimalKills(long playerId)
+//         {
+//             double exp = 0;
+//             // Implement logic for calculating exp from killing animals
+//             return exp;
+//         }
+//
+//         private double CalculateExpFromDestroyedBlocks(long playerId)
+//         {
+//             double exp = 0;
+//             // Implement logic for calculating exp from destroying enemy blocks (of NPC)
+//             return exp;
+//         }
+//
+//         /// <inheritdoc /> 
+//         public override int ExpToLevelUp(ulong steamID)
+//         {
+//             return 1; // Temp placeholder.
+//         }
+//
+//         /// <inheritdoc /> 
+//         protected override Task AddClassExp(ulong steamID, double exp)
+//         {
+//             if (PlayerManagers[steamID]._PlayerData.HunterExp + exp >= ExpToLevelUp(steamID))
+//             {
+//                 PlayerManagers[steamID]._PlayerData.HunterLevel++;
+//                 PlayerManagers[steamID]._PlayerData.HunterExp = Math.Round(PlayerManagers[steamID]._PlayerData.HunterExp + exp) - ExpToLevelUp(steamID);
+//
+//                 if (Instance.Config.BroadcastLevelUp)
+//                 {
+//                     string name =
+//                         MySession.Static.Players.TryGetIdentityNameFromSteamId(PlayerManagers[steamID]._PlayerData
+//                             .SteamId);
+//                     ChatManager.SendMessageAsOther("Roles Manager", $"{name} is now a level {PlayerManagers[steamID]._PlayerData.HunterLevel} Hunter!", Color.ForestGreen);
+//                 }
+//             }
+//             else
+//             {
+//                 PlayerManagers[steamID]._PlayerData.HunterExp += exp;
+//             }
+//
+//             return Task.CompletedTask;
+//         }
+//         
+//         /// <inheritdoc /> 
+//         public override void Loaded()
+//         {
+//             MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(0, OnCharacterDamaged);
+//             MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(0, BlockDestroyedHandler);
+//         }
+//
+//         /// <inheritdoc /> 
+//         public override void Unloading()
+//         {
+//             
+//         }
+//     }
+// }
