@@ -114,7 +114,6 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RPGPlugin\Patches\DrillPatch.cs" />
     <Compile Include="RPGPlugin\Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -17,7 +17,6 @@ using Torch.API.Session;
 using Torch.Managers.PatchManager;
 using Torch.Session;
 using VRage.GameServices;
-using RPGPlugin.Patches;
 using RPGPlugin.Utils;
 using Sandbox.Game.Multiplayer;
 
