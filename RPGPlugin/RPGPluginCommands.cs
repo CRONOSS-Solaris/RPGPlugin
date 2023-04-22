@@ -53,6 +53,12 @@ namespace RPGPlugin
                     await Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData();
                     Context.Respond("Your role has been updated to [Warrior]");
                     break;
+                
+                case "hunter":
+                    Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(PlayerManager.FromRoles.Hunter);
+                    await Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData();
+                    Context.Respond("Your role has been updated to [Hunter]");
+                    break;
 
                 default:
                     Context.Respond("No role with that name found, check your spelling and try again.");
