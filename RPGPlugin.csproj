@@ -129,6 +129,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="RPGPlugin\Roles\Behavior\ClassesBase.cs" />
+    <Compile Include="RPGPlugin\Roles\Behavior\HunterClass.cs" />
     <Compile Include="RPGPlugin\Roles\Behavior\MinerClass.cs" />
     <Compile Include="RPGPlugin\Roles\Behavior\SampleClass.cs" />
     <Compile Include="RPGPlugin\Roles\Behavior\WarriorClass.cs" />

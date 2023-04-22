@@ -41,7 +41,7 @@ Please report any errors, comments or suggestions you encounter to the plugin au
 
 ## 6. Roles that are not implemented:
 
-- Hunter
+- Hunter ( In Progress )
 - Warrior ( In Progress )
 
 ## Additional important information

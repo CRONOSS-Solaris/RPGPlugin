@@ -11,6 +11,8 @@ public class PlayerData
     public double MinerExp { get; set; }
     public int WarriorLevel { get; set; }
     public double WarriorExp { get; set; }
+    public int HunterLevel { get; set; }
+    public double HunterExp { get; set; }
     public long AttackerId { get; set; }
     public PlayerManager.FromRoles SelectedRole { get; set; }
 
@@ -24,6 +26,8 @@ public class PlayerData
         MinerExp = 0.0;
         WarriorLevel = 1;
         WarriorExp = 0.0;
+        HunterLevel = 1;
+        HunterExp = 0;
         SelectedRole = PlayerManager.FromRoles.NoRole;
     }
 }
