@@ -120,7 +120,7 @@ namespace RPGPlugin
             StringBuilder reply = new StringBuilder();
             reply.AppendLine("*** Information ***");
             reply.AppendLine("--------------------");
-            reply.AppendLine("Miner:");
+            reply.AppendLine($"{Roles.PlayerManagers[Context.Player.SteamUserId].GetRole()}:");
             reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.SteamUserId].GetLevel().ToString()}.");
             reply.AppendLine($"Exp needed for next level: {Roles.roles["MinerClass"].ExpToLevelUp(Context.Player.SteamUserId).ToString()}.");
             reply.AppendLine("--------------------");
