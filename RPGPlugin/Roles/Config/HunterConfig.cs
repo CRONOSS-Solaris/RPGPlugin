@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace RPGPlugin
 {
-    public sealed class HunerConfig : configBase
+    public sealed class HunterConfig : configBase
     {
         // Definition of the ExpRatio property, which stores experience point values for individual minerals
         /// <inheritdoc />
@@ -25,7 +25,7 @@ namespace RPGPlugin
         {
             string data = GetConfig().Result;
             if (data == null) return;
-            HunerConfig classConfig = JsonConvert.DeserializeObject<HunerConfig>(data);
+            HunterConfig classConfig = JsonConvert.DeserializeObject<HunterConfig>(data);
             ExpRatio = classConfig.ExpRatio;
         }
 

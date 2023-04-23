@@ -30,7 +30,7 @@ namespace RPGPlugin.PointManagementSystem
         /// <inheritdoc /> 
         public override void init()
         {
-            HunerConfig config = (HunerConfig)classConfigs["HunerConfig"];
+            HunterConfig config = (HunterConfig)classConfigs["HunterConfig"];
             if (config != null)
                 ExpRatio = config.ExpRatio;
             base.init();
