@@ -15,6 +15,7 @@ using VRage.Game;
 using VRage.Game.Entity;
 using VRageMath;
 using static RPGPlugin.Roles;
+using System.Linq;
 
 namespace RPGPlugin.PointManagementSystem
 {
@@ -83,12 +84,28 @@ namespace RPGPlugin.PointManagementSystem
             return (int)Math.Round(expForLevelUp - PlayerManagers[steamID]._PlayerData.MinerExp);
         }
 
-        /// <inheritdoc />
+
         protected override Task AddClassExp(ulong steamID, double exp)
         {
             if (PlayerManagers[steamID]._PlayerData.MinerExp + exp >= ExpToLevelUp(steamID))
             {
+                int previousLevel = PlayerManagers[steamID]._PlayerData.MinerLevel;
                 PlayerManagers[steamID]._PlayerData.MinerLevel++;
+                int newLevel = PlayerManagers[steamID]._PlayerData.MinerLevel;
+
+                // Adding skill points
+                for (int level = previousLevel + 1; level <= newLevel; level++)
+                {
+                    if (SkillPoints.Any(kv => kv.Key == level))
+                    {
+                        PlayerManagers[steamID]._PlayerData.MinerSkillPoints += SkillPoints[level].Value;
+
+                        // Notifying the player of skill point received
+                        MyVisualScriptLogicProvider.SendChatMessageColored("You have received a skill point!",
+                            Color.Yellow, "Roles", PlayerManagers[steamID]._PlayerData.PlayerID);
+                    }
+                }
+
                 PlayerManagers[steamID]._PlayerData.MinerExp =
                     Math.Round(PlayerManagers[steamID]._PlayerData.MinerExp + exp) - ExpToLevelUp(steamID);
 
@@ -110,25 +127,39 @@ namespace RPGPlugin.PointManagementSystem
                 PlayerManagers[steamID]._PlayerData.MinerExp += exp;
             }
 
-            ////test skill point system 
-            //if (PlayerManagers[steamID]._PlayerData.MinerExp + exp >= ExpToLevelUp(steamID))
-            //{
-            //    int previousLevel = PlayerManagers[steamID]._PlayerData.MinerLevel;
-            //    PlayerManagers[steamID]._PlayerData.MinerLevel++;
-            //    int newLevel = PlayerManagers[steamID]._PlayerData.MinerLevel;
-
-            //    // Adding skill points
-            //    for (int level = previousLevel + 1; level <= newLevel; level++)
-            //    {
-            //        if (SkillPoints.ContainsKey(level))
-            //        {
-            //            PlayerManagers[steamID]._PlayerData.MinerSkillPoints += SkillPoints[level];
-            //        }
-            //    }
-            //}
-
             return Task.CompletedTask;
         }
+
+        //original code
+        /// <inheritdoc />
+        //protected override Task AddClassExp(ulong steamID, double exp)
+        //{
+        //    if (PlayerManagers[steamID]._PlayerData.MinerExp + exp >= ExpToLevelUp(steamID))
+        //    {
+        //        PlayerManagers[steamID]._PlayerData.MinerLevel++;
+        //        PlayerManagers[steamID]._PlayerData.MinerExp =
+        //            Math.Round(PlayerManagers[steamID]._PlayerData.MinerExp + exp) - ExpToLevelUp(steamID);
+
+        //        if (Instance.Config.BroadcastLevelUp)
+        //        {
+        //            string name =
+        //                MySession.Static.Players.TryGetIdentityNameFromSteamId(PlayerManagers[steamID]._PlayerData.SteamId);
+        //            ChatManager.SendMessageAsOther("Roles Manager",
+        //                $"{name} is now a level {PlayerManagers[steamID]._PlayerData.MinerLevel} Miner!", Color.ForestGreen);
+        //        }
+        //        else
+        //        {
+        //            MyVisualScriptLogicProvider.SendChatMessageColored("You have leveled up!!!", Color.Green, "Roles",
+        //                PlayerManagers[steamID]._PlayerData.PlayerID);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        PlayerManagers[steamID]._PlayerData.MinerExp += exp;
+        //    }
+
+        //    return Task.CompletedTask;
+        //}
 
         /// <inheritdoc />
         public override void Loaded() { }
