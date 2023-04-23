@@ -24,12 +24,15 @@ namespace RPGPlugin
         {
             Plugin = plugin;
             DataContext = this;
+            // Miner Config
             ExpRatioDataGrid.DataContext = (MinerConfig)Roles.classConfigs["MinerConfig"];
             ExpRatioDataGrid.ItemsSource = Roles.classConfigs["MinerConfig"].ExpRatio;
+            // Warrior Config
             WarriorDataGrid.DataContext = (WarriorConfig)Roles.classConfigs["WarriorConfig"];
             WarriorDataGrid.ItemsSource = Roles.classConfigs["WarriorConfig"].ExpRatio;
-            WarriorDataGrid.DataContext = (HunterConfig)Roles.classConfigs["HunterConfig"];
-            WarriorDataGrid.ItemsSource = Roles.classConfigs["HunterConfig"].ExpRatio;
+            // Hunter Config
+            HunterDataGrid.DataContext = (HunterConfig)Roles.classConfigs["HunterConfig"];
+            HunterDataGrid.ItemsSource = Roles.classConfigs["HunterConfig"].ExpRatio;
         }
 
         public void Donate_Click(object sender, RoutedEventArgs e)
@@ -37,6 +40,7 @@ namespace RPGPlugin
             Process.Start("https://www.paypal.com/donate/?hosted_button_id=HCV9695KQDMFN");
         }
 
+        // Add New Ore Button | Miner
         private async void AddNewOreButton_Click(object sender, RoutedEventArgs e)
         {
             var addItemWindow = new AddItemWindow { ItemType = ItemType.Ore, Title = "RPGPLUGIN - ADD NEW ORE" };
@@ -64,6 +68,7 @@ namespace RPGPlugin
             }
         }
 
+        // Add New Warrior Definition Button
         private async void AddNewWarriorDefinitionButton_Click(object sender, RoutedEventArgs e)
         {
             var addItemWindow = new AddItemWindow { ItemType = ItemType.WarriorDefinition, Title = "RPGPLUGIN - ADD NEW WARRIOR DEFINITION" };
@@ -91,6 +96,7 @@ namespace RPGPlugin
             }
         }
 
+        // Add New Hunter Definition Button
         private async void AddNewHunterDefinitionButton_Click(object sender, RoutedEventArgs e)
         {
             var addItemWindow = new AddItemWindow { ItemType = ItemType.HunterDefinition, Title = "RPGPLUGIN - ADD NEW HUNTER DEFINITION" };
@@ -118,7 +124,7 @@ namespace RPGPlugin
             }
         }
 
-
+        // Edit Ore Button | Miner
         private async void EditOreButton_Click(object sender, RoutedEventArgs e)
         {
             if (ExpRatioDataGrid.SelectedItem != null)
@@ -152,6 +158,7 @@ namespace RPGPlugin
             }
         }
 
+        //Edit Warrior Definition Button
         private async void EditWarriorDefinitionButton_Click(object sender, RoutedEventArgs e)
         {
             if (WarriorDataGrid.SelectedItem != null)
@@ -185,6 +192,7 @@ namespace RPGPlugin
             }
         }
 
+        //Edit Hunter Definition Button
         private async void EditHunterDefinitionButton_Click(object sender, RoutedEventArgs e)
         {
             if (HunterDataGrid.SelectedItem != null)
@@ -218,7 +226,7 @@ namespace RPGPlugin
             }
         }
 
-
+        //Delete Ore Button | Miner
         private async void DeleteOreButton_Click(object sender, RoutedEventArgs e)
         {
             if (ExpRatioDataGrid.SelectedItem != null)
@@ -238,9 +246,10 @@ namespace RPGPlugin
             }
         }
 
+        // Delete Warrior Definition Button
         private async void DeleteWarriorDefinitionButton_Click(object sender, RoutedEventArgs e)
         {
-            if (ExpRatioDataGrid.SelectedItem != null)
+            if (WarriorDataGrid.SelectedItem != null)
             {
                 MessageBoxResult result;
 
@@ -257,9 +266,10 @@ namespace RPGPlugin
             }
         }
 
+        // Delete Hunter Definition Button
         private async void DeleteHunterDefinitionButton_Click(object sender, RoutedEventArgs e)
         {
-            if (ExpRatioDataGrid.SelectedItem != null)
+            if (HunterDataGrid.SelectedItem != null)
             {
                 MessageBoxResult result;
 
