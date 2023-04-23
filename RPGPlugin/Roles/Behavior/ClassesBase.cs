@@ -15,6 +15,10 @@ namespace RPGPlugin.PointManagementSystem
         /// Contains the named object of your points and the value
         /// </summary>
         public abstract ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; }
+        
+        //test skill point system
+        public abstract ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; }
+        
         public virtual bool InitComplete { get; set; }
 
         public virtual void init()

@@ -26,6 +26,10 @@ namespace RPGPlugin.PointManagementSystem
         public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } =
             new ObservableCollection<KeyValuePair<string, double>>();
 
+        //test skill point system
+        public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } =
+            new ObservableCollection<KeyValuePair<int, int>>();
+
         /// <inheritdoc /> 
         public override void init()
         {

@@ -8,6 +8,8 @@ namespace RPGPlugin
     public class SampleClass : ClassesBase
     {
         public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; }
+
+        public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; }
         
         // Change the rate the queue process runs.
         protected override double _queueFrequency { get; set; }

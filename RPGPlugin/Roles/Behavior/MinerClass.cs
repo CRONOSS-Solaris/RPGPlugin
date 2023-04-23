@@ -24,6 +24,10 @@ namespace RPGPlugin.PointManagementSystem
         /// Point to your classConfig ExpRatio collection
         public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; }
 
+        //test skill point system
+        public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } =
+            new ObservableCollection<KeyValuePair<int, int>>();
+
         public override void init()
         {
             MinerConfig config = (MinerConfig)classConfigs["MinerConfig"];
@@ -105,6 +109,23 @@ namespace RPGPlugin.PointManagementSystem
             {
                 PlayerManagers[steamID]._PlayerData.MinerExp += exp;
             }
+
+            ////test skill point system 
+            //if (PlayerManagers[steamID]._PlayerData.MinerExp + exp >= ExpToLevelUp(steamID))
+            //{
+            //    int previousLevel = PlayerManagers[steamID]._PlayerData.MinerLevel;
+            //    PlayerManagers[steamID]._PlayerData.MinerLevel++;
+            //    int newLevel = PlayerManagers[steamID]._PlayerData.MinerLevel;
+
+            //    // Adding skill points
+            //    for (int level = previousLevel + 1; level <= newLevel; level++)
+            //    {
+            //        if (SkillPoints.ContainsKey(level))
+            //        {
+            //            PlayerManagers[steamID]._PlayerData.MinerSkillPoints += SkillPoints[level];
+            //        }
+            //    }
+            //}
 
             return Task.CompletedTask;
         }
