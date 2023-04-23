@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Windows;
 
 namespace RPGPlugin
@@ -59,7 +60,7 @@ namespace RPGPlugin
 
         public void SetExpPerItem(double expPerItem)
         {
-            ExpPerItemTextBox.Text = expPerItem.ToString();
+            ExpPerItemTextBox.Text = expPerItem.ToString(CultureInfo.InvariantCulture);
         }
     }
 }

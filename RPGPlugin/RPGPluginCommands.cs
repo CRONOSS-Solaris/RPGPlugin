@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using RPGPlugin.Utils;
 using Torch.Commands;
 using Torch.Commands.Permissions;
@@ -34,36 +35,13 @@ namespace RPGPlugin
             }
 
             // Get player Manager
-            switch (roleName.ToLower()) // No need for case sensitivity.
+            for (int index = Roles.Instance.Config.RegisteredRoles.Count - 1; index >= 0; index--)
             {
-                case "norole":
-                    Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(PlayerManager.FromRoles.NoRole);
-                    await Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData();
-                    Context.Respond("Your role has been updated to [No Role]");
-                    break;
-
-                case "miner":
-                    Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(PlayerManager.FromRoles.Miner);
-                    await Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData();
-                    Context.Respond("Your role has been updated to [Miner]");
-                    break;
-
-                case "warrior":
-                    Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(PlayerManager.FromRoles.Warrior);
-                    await Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData();
-                    Context.Respond("Your role has been updated to [Warrior]");
-                    break;
+                if (roleName != Roles.Instance.Config.RegisteredRoles[index].Item1) continue;
                 
-                case "hunter":
-                    Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(PlayerManager.FromRoles.Hunter);
-                    await Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData();
-                    Context.Respond("Your role has been updated to [Hunter]");
-                    break;
-
-                default:
-                    Context.Respond("No role with that name found, check your spelling and try again.");
-                    break;
-            
+                Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(roleName);
+                await Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData();
+                Context.Respond($"Your role has been updated to [{roleName}]");
             }
         }
 
@@ -71,26 +49,11 @@ namespace RPGPlugin
         [Permission(MyPromoteLevel.None)]
         public void ListRoles()
         {
-            if (Context.Player == null)
-            {
-                Context.Respond("This is a player command only.");
-                return;
-            }
-            
-            if (!Roles.Instance.DelayFinished)
-            {
-                Context.Respond("Players data will not be loaded immediately after restarts to allow the server to stabilize.");
-                return;
-            }
-
             StringBuilder message = new StringBuilder();
-            message.AppendLine("Miner - This role allows you to mine and gather resources more efficiently.");
-            message.AppendLine();
-            message.AppendLine("Hunter - This role increases your damage against animals and improves your tracking abilities.");
-            message.AppendLine();
-            message.AppendLine("Warrior - This role increases your damage against other players and gives you access to better weapons.");
-
-            Helper.SendRoleData(Context.Player, "Available roles:", message.ToString());
+            foreach (Tuple<string,string> role in Roles.Instance.Config.RegisteredRoles)
+                message.AppendLine($"{role.Item1} -> {role.Item2}");
+            
+            Context.Respond(message.ToString());
         }
 
 
@@ -107,7 +70,7 @@ namespace RPGPlugin
 
             if (!Roles.Instance.DelayFinished)
             {
-                Context.Respond("Players data will not be loaded immediately after restarts to allow the server to stabilize.");
+                Context.Respond("Players data will not be loaded shortly after restarts to allow the server to stabilize.");
                 return;
             }
             
@@ -119,13 +82,17 @@ namespace RPGPlugin
             
             StringBuilder reply = new StringBuilder();
             reply.AppendLine("*** Information ***");
-            reply.AppendLine("--------------------");
-            reply.AppendLine($"{Roles.PlayerManagers[Context.Player.SteamUserId].GetRole()}:");
-            reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.SteamUserId].GetLevel().ToString()}.");
-            reply.AppendLine($"Exp needed for next level: {Roles.roles["MinerClass"].ExpToLevelUp(Context.Player.SteamUserId).ToString()}.");
-            reply.AppendLine("--------------------");
+            reply.AppendLine("—————————————————————————————");
+            reply.AppendLine($"Current Role: {Roles.PlayerManagers[Context.Player.SteamUserId].GetRole()}");
+            reply.AppendLine("—————————————————————————————");
+            foreach (Tuple<string,string> role in Roles.Instance.Config.RegisteredRoles)
+            {
+                reply.AppendLine($"{role.Item1}:");
+                reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.SteamUserId]._PlayerData.ClassInfo[role.Item1].Item1}.");
+                reply.AppendLine($"Exp needed for next level: {Roles.roles[role.Item1 + "Class"].ExpToLevelUp(Context.Player.SteamUserId).ToString()}.");
+                reply.AppendLine("—————————————————————————————");
+            }
             Context.Respond(reply.ToString());
-            
         }
     }
 }

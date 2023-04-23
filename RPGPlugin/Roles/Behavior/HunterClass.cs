@@ -120,16 +120,17 @@ namespace RPGPlugin.PointManagementSystem
 
                 if (!PlayerManagers.ContainsKey(steamID)) continue;
 
-                if (PlayerManagers[steamID].GetRole() != PlayerManager.FromRoles.Hunter) break;
+                if (PlayerManagers[steamID].GetRole() != "Hunter") continue;
 
-                if (ExpRatio.Count == 0) break;
-                if (!PlayerManagers.ContainsKey(steamID)) break;
+                if (xpTable.Count == 0) break;
+                if (!PlayerManagers.ContainsKey(steamID)) continue;
 
                 await AddClassExp(steamID, expRatioDict[queueData.subType]);
             }
             _queueInProcess = false;
         }
 
+        // All damage calculations should be part of the same method.  Use a switch statement for best performance.
         private double CalculateExpFromAnimalKills(long playerId, string animalType)
         {
             double exp = 0;
@@ -144,6 +145,7 @@ namespace RPGPlugin.PointManagementSystem
             return exp;
         }
         
+        // All damage calculations should be part of the same method.  Use a switch statement for best performance.
         private double CalculateExpFromDestroyedBlocks(long playerId)
         {
             double exp = 0;
@@ -160,22 +162,28 @@ namespace RPGPlugin.PointManagementSystem
         /// <inheritdoc /> 
         protected override Task AddClassExp(ulong steamID, double exp)
         {
-            if (PlayerManagers[steamID]._PlayerData.HunterExp + exp >= ExpToLevelUp(steamID))
+            if (PlayerManagers[steamID]._PlayerData.ClassInfo["Hunter"].Item2 + exp >= ExpToLevelUp(steamID))
             {
-                PlayerManagers[steamID]._PlayerData.HunterLevel++;
-                PlayerManagers[steamID]._PlayerData.HunterExp = Math.Round(PlayerManagers[steamID]._PlayerData.HunterExp + exp) - ExpToLevelUp(steamID);
+                Tuple<int, double> UpdateData = new Tuple<int, double>(
+                    PlayerManagers[steamID]._PlayerData.ClassInfo["Hunter"].Item1 + 1,
+                    PlayerManagers[steamID]._PlayerData.ClassInfo["Hunter"].Item2 + exp - ExpToLevelUp(steamID)
+                );
+
+                PlayerManagers[steamID]._PlayerData.ClassInfo["Hunter"] = UpdateData;
 
                 if (Instance.Config.BroadcastLevelUp)
                 {
-                    string name =
-                        MySession.Static.Players.TryGetIdentityNameFromSteamId(PlayerManagers[steamID]._PlayerData
-                            .SteamId);
-                    ChatManager.SendMessageAsOther("Roles Manager", $"{name} is now a level {PlayerManagers[steamID]._PlayerData.HunterLevel} Hunter!", Color.ForestGreen);
+                    string name = MySession.Static.Players.TryGetIdentityNameFromSteamId(PlayerManagers[steamID]._PlayerData.SteamId);
+                    ChatManager.SendMessageAsOther("Roles Manager", $"{name} is now a level {PlayerManagers[steamID]._PlayerData.ClassInfo["Hunter"]} Hunter!", Color.ForestGreen);
                 }
             }
             else
             {
-                PlayerManagers[steamID]._PlayerData.HunterExp += exp;
+                Tuple<int, double> UpdateData = new Tuple<int, double>(
+                    PlayerManagers[steamID]._PlayerData.ClassInfo["Hunter"].Item1,
+                    PlayerManagers[steamID]._PlayerData.ClassInfo["Hunter"].Item2 + exp - ExpToLevelUp(steamID)
+                );
+                PlayerManagers[steamID]._PlayerData.ClassInfo["Hunter"] = UpdateData;
             }
 
             return Task.CompletedTask;

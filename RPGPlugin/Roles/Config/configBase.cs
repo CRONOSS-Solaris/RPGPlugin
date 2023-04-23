@@ -18,14 +18,14 @@ namespace RPGPlugin
         private static TimeSpan _lockTimeOut = TimeSpan.FromMilliseconds(5000);
         private const string storagePath = "Instance/RPGPlugin/";
         
-        
         /// <summary>
         /// Store your class point type and point value per type in this collection.
         /// </summary>
         public abstract ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; }
-
+        
         //test skill point system
         public abstract ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; }
+        
         /// <summary>
         /// Initializer, always start with base.int(). This sets the config file save location and name.
         /// </summary>
@@ -33,6 +33,11 @@ namespace RPGPlugin
         {
             
         }
+
+        /// <summary>
+        /// Register the class type in the master list!
+        /// </summary>
+        public abstract void RegisterClass();
 
         protected virtual string GetFileName()
         {

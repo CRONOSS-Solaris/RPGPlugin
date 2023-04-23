@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -29,6 +30,14 @@ namespace RPGPlugin
 
             //test skill point system
             SkillPoints.Add(new KeyValuePair<int, int>(2, 1));
+        }
+        
+        public override void RegisterClass()
+        {
+            Tuple<string, string> RoleToRegister = new Tuple<string, string>("Warrior", "Specialized in battles and destruction of other engineers things!.");
+            
+            if (!Roles.Instance.Config.RegisteredRoles.Contains(RoleToRegister))
+                Roles.Instance.Config.RegisteredRoles.Add(RoleToRegister);
         }
 
         public override void LoadConfig()

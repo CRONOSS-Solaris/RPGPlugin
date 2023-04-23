@@ -15,7 +15,6 @@ using VRage.Game;
 using VRage.Game.Entity;
 using VRageMath;
 using static RPGPlugin.Roles;
-using System.Linq;
 
 namespace RPGPlugin.PointManagementSystem
 {
@@ -23,8 +22,9 @@ namespace RPGPlugin.PointManagementSystem
     {
         /// <inheritdoc />
         /// Point to your classConfig ExpRatio collection
-        public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; }
-
+        public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } =
+            new ObservableCollection<KeyValuePair<string, double>>();
+        
         //test skill point system
         public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } =
             new ObservableCollection<KeyValuePair<int, int>>();
@@ -63,7 +63,7 @@ namespace RPGPlugin.PointManagementSystem
                 if (!PlayerManagers.ContainsKey(steamID)) continue;
                 
                 // If not a miner, no points given.
-                if (PlayerManagers[steamID].GetRole() != PlayerManager.FromRoles.Miner) break;
+                if (PlayerManagers[steamID].GetRole() != "Miner") break;
                 
                 // shitteryCheck
                 if (xpTable.Count == 0) break;
@@ -80,41 +80,25 @@ namespace RPGPlugin.PointManagementSystem
         /// <inheritdoc />
         public override int ExpToLevelUp(ulong steamID)
         {
-            int expForLevelUp = (int)Math.Round(PlayerManagers[steamID]._PlayerData.MinerLevel / 3.5 * 10000);
-            return (int)Math.Round(expForLevelUp - PlayerManagers[steamID]._PlayerData.MinerExp);
+            int expForLevelUp = (int)Math.Round(PlayerManagers[steamID]._PlayerData.ClassInfo["Miner"].Item1 / 3.5 * 10000);
+            return (int)Math.Round(expForLevelUp - PlayerManagers[steamID]._PlayerData.ClassInfo["Miner"].Item2);
         }
-
 
         protected override Task AddClassExp(ulong steamID, double exp)
         {
-            if (PlayerManagers[steamID]._PlayerData.MinerExp + exp >= ExpToLevelUp(steamID))
+            if (PlayerManagers[steamID]._PlayerData.ClassInfo["Miner"].Item2 + exp >= ExpToLevelUp(steamID))
             {
-                int previousLevel = PlayerManagers[steamID]._PlayerData.MinerLevel;
-                PlayerManagers[steamID]._PlayerData.MinerLevel++;
-                int newLevel = PlayerManagers[steamID]._PlayerData.MinerLevel;
+                Tuple<int, double> UpdateData = new Tuple<int, double>(
+                    PlayerManagers[steamID]._PlayerData.ClassInfo["Miner"].Item1 + 1,
+                    PlayerManagers[steamID]._PlayerData.ClassInfo["Miner"].Item2 + exp - ExpToLevelUp(steamID)
+                );
 
-                // Adding skill points
-                for (int level = previousLevel + 1; level <= newLevel; level++)
-                {
-                    if (SkillPoints.Any(kv => kv.Key == level))
-                    {
-                        PlayerManagers[steamID]._PlayerData.MinerSkillPoints += SkillPoints[level].Value;
-
-                        // Notifying the player of skill point received
-                        MyVisualScriptLogicProvider.SendChatMessageColored("You have received a skill point!",
-                            Color.Yellow, "Roles", PlayerManagers[steamID]._PlayerData.PlayerID);
-                    }
-                }
-
-                PlayerManagers[steamID]._PlayerData.MinerExp =
-                    Math.Round(PlayerManagers[steamID]._PlayerData.MinerExp + exp) - ExpToLevelUp(steamID);
+                PlayerManagers[steamID]._PlayerData.ClassInfo["Miner"] = UpdateData;
 
                 if (Instance.Config.BroadcastLevelUp)
                 {
-                    string name =
-                        MySession.Static.Players.TryGetIdentityNameFromSteamId(PlayerManagers[steamID]._PlayerData.SteamId);
-                    ChatManager.SendMessageAsOther("Roles Manager",
-                        $"{name} is now a level {PlayerManagers[steamID]._PlayerData.MinerLevel} Miner!", Color.ForestGreen);
+                    string name = MySession.Static.Players.TryGetIdentityNameFromSteamId(PlayerManagers[steamID]._PlayerData.SteamId);
+                    ChatManager.SendMessageAsOther("Roles Manager", $"{name} is now a level {PlayerManagers[steamID]._PlayerData.ClassInfo["Miner"].Item1} Miner!", Color.ForestGreen);
                 }
                 else
                 {
@@ -124,43 +108,17 @@ namespace RPGPlugin.PointManagementSystem
             }
             else
             {
-                PlayerManagers[steamID]._PlayerData.MinerExp += exp;
+                Tuple<int, double> UpdateData = new Tuple<int, double>(
+                    PlayerManagers[steamID]._PlayerData.ClassInfo["Miner"].Item1,
+                    PlayerManagers[steamID]._PlayerData.ClassInfo["Miner"].Item2 + exp - ExpToLevelUp(steamID)
+                );
+                PlayerManagers[steamID]._PlayerData.ClassInfo["Miner"] = UpdateData;
             }
 
             return Task.CompletedTask;
         }
-
-        //original code
-        /// <inheritdoc />
-        //protected override Task AddClassExp(ulong steamID, double exp)
-        //{
-        //    if (PlayerManagers[steamID]._PlayerData.MinerExp + exp >= ExpToLevelUp(steamID))
-        //    {
-        //        PlayerManagers[steamID]._PlayerData.MinerLevel++;
-        //        PlayerManagers[steamID]._PlayerData.MinerExp =
-        //            Math.Round(PlayerManagers[steamID]._PlayerData.MinerExp + exp) - ExpToLevelUp(steamID);
-
-        //        if (Instance.Config.BroadcastLevelUp)
-        //        {
-        //            string name =
-        //                MySession.Static.Players.TryGetIdentityNameFromSteamId(PlayerManagers[steamID]._PlayerData.SteamId);
-        //            ChatManager.SendMessageAsOther("Roles Manager",
-        //                $"{name} is now a level {PlayerManagers[steamID]._PlayerData.MinerLevel} Miner!", Color.ForestGreen);
-        //        }
-        //        else
-        //        {
-        //            MyVisualScriptLogicProvider.SendChatMessageColored("You have leveled up!!!", Color.Green, "Roles",
-        //                PlayerManagers[steamID]._PlayerData.PlayerID);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        PlayerManagers[steamID]._PlayerData.MinerExp += exp;
-        //    }
-
-        //    return Task.CompletedTask;
-        //}
-
+        
+        
         /// <inheritdoc />
         public override void Loaded() { }
 
@@ -192,7 +150,7 @@ namespace RPGPlugin.PointManagementSystem
             if (drill == null) return;
             
             
-            Roles.roles["MinerClass"]._ProcessQueue.Enqueue(new ExperienceAction
+            roles["MinerClass"]._ProcessQueue.Enqueue(new ExperienceAction
             {
                 ownerID = drill.OwnerId,
                 subType = material.MinedOre,
