@@ -14,6 +14,9 @@ public class PlayerData
     public int HunterLevel { get; set; }
     public double HunterExp { get; set; }
     public long AttackerId { get; set; }
+
+    //test skill point system
+    public int MinerSkillPoints { get; set; }
     public PlayerManager.FromRoles SelectedRole { get; set; }
 
     public PlayerData() {}
@@ -28,6 +31,10 @@ public class PlayerData
         WarriorExp = 0.0;
         HunterLevel = 1;
         HunterExp = 0;
+        
+        //test skill point system
+        MinerSkillPoints = 0;
+
         SelectedRole = PlayerManager.FromRoles.NoRole;
     }
 }

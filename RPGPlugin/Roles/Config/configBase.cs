@@ -24,6 +24,8 @@ namespace RPGPlugin
         /// </summary>
         public abstract ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; }
 
+        //test skill point system
+        public abstract ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; }
         /// <summary>
         /// Initializer, always start with base.int(). This sets the config file save location and name.
         /// </summary>

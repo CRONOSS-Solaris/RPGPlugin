@@ -9,6 +9,9 @@ namespace RPGPlugin
         // Use this collection should store your XP to Action values.
         public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; }
 
+        //test skill point system
+        public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; }
+
         public override void init()
         {
             // Always run this method first!

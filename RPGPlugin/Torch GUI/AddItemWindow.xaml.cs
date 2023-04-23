@@ -6,7 +6,8 @@ namespace RPGPlugin
     public enum ItemType
     {
         Ore,
-        WarriorDefinition
+        WarriorDefinition,
+        HunterDefinition
     }
 
     public partial class AddItemWindow : Window

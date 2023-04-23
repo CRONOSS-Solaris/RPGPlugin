@@ -13,6 +13,10 @@ namespace RPGPlugin
         public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } =
             new ObservableCollection<KeyValuePair<string, double>>();
 
+        //test skill point system
+        public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } =
+            new ObservableCollection<KeyValuePair<int, int>>();
+
         public override void init()
         {
             base.init();
@@ -28,6 +32,9 @@ namespace RPGPlugin
             ExpRatio.Add(new KeyValuePair<string, double>( "Platinum",  0.28   ));
             ExpRatio.Add(new KeyValuePair<string, double>( "Uranium",   0.30   ));
             ExpRatio.Add(new KeyValuePair<string, double>( "Ice",       0.135  ));
+
+            //test skill point system
+            SkillPoints.Add(new KeyValuePair<int, int>(2, 1));
         }
         
         public override void LoadConfig()
@@ -46,10 +53,3 @@ namespace RPGPlugin
         }
     }
 }
-
-
-
-
-
-
-
