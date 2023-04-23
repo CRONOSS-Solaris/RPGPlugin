@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -7,10 +8,12 @@ namespace RPGPlugin
     public class SampleConfig : configBase
     {
         // Use this collection should store your XP to Action values.
-        public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; }
+        public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } =
+            new ObservableCollection<KeyValuePair<string, double>>();
 
         //test skill point system
-        public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; }
+        public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } =
+            new ObservableCollection<KeyValuePair<int, int>>();
 
         public override void init()
         {
@@ -41,6 +44,16 @@ namespace RPGPlugin
             // Send your config settings in json format to: await SaveConfig(jsonData)
             // See the MinerClass for an example.
             return Task.CompletedTask;
+        }
+        
+        public override void RegisterClass()
+        {
+            /*
+            Tuple<string, string> RoleToRegister = new Tuple<string, string>("This Is The Class Title", "This Is A Description Of The Class");
+            
+            if (!Roles.Instance.Config.RegisteredRoles.Contains(RoleToRegister))
+                Roles.Instance.Config.RegisteredRoles.Add(RoleToRegister);                
+            */
         }
     }
 }

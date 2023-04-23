@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Torch;
 using VRage.Collections;
 
@@ -13,5 +14,9 @@ namespace RPGPlugin
         // multi server setups like Nexus or WormHole.  
         private string _saveLocation;
         public string SaveLocation { get => _saveLocation; set => SetValue(ref _saveLocation, value); }
+
+        // ROLE, Description  -  Registered by the class itself.
+        private List<Tuple<string, string>> _registeredRoles = new List<Tuple<string, string>>();
+        public List<Tuple<string, string>> RegisteredRoles { get => _registeredRoles; set => SetValue(ref _registeredRoles, value); }
     }
 }

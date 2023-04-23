@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -11,7 +12,7 @@ namespace RPGPlugin
         /// <inheritdoc />
         public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } =
             new ObservableCollection<KeyValuePair<string, double>>();
-
+        
         //test skill point system
         public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } =
             new ObservableCollection<KeyValuePair<int, int>>();
@@ -23,9 +24,14 @@ namespace RPGPlugin
             ExpRatio.Add(new KeyValuePair<string, double>("Spider",      0.0013 ));
             ExpRatio.Add(new KeyValuePair<string, double>("SmallBlock",       2 ));
             ExpRatio.Add(new KeyValuePair<string, double>("LargeBlock",      10 ));
+        }
 
-            //test skill point system
-            SkillPoints.Add(new KeyValuePair<int, int>(2, 1));
+        public override void RegisterClass()
+        {
+            Tuple<string, string> RoleToRegister = new Tuple<string, string>("Hunter", "Specialized in attacking NPC ships and creatures.");
+            
+            if (!Roles.Instance.Config.RegisteredRoles.Contains(RoleToRegister))
+                Roles.Instance.Config.RegisteredRoles.Add(RoleToRegister);
         }
 
         public override void LoadConfig()

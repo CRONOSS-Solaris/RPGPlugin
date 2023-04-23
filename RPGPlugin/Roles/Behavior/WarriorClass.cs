@@ -100,7 +100,7 @@ namespace RPGPlugin.PointManagementSystem
                 if (!PlayerManagers.ContainsKey(steamID)) continue;
 
                 // If not a warrior, no points given.
-                if (PlayerManagers[steamID].GetRole() != PlayerManager.FromRoles.Warrior) break;
+                if (PlayerManagers[steamID].GetRole() != "Warrior") break;
 
                 // ShitteryCheck
                 if (ExpRatio.Count == 0) break;
@@ -136,18 +136,21 @@ namespace RPGPlugin.PointManagementSystem
         /// <inheritdoc /> 
         protected override Task AddClassExp(ulong steamID, double exp)
         {
-            if (PlayerManagers[steamID]._PlayerData.WarriorExp + exp >= ExpToLevelUp(steamID))
+            if (PlayerManagers[steamID]._PlayerData.ClassInfo["Warrior"].Item2 + exp >= ExpToLevelUp(steamID))
             {
-                PlayerManagers[steamID]._PlayerData.WarriorLevel++;
-                PlayerManagers[steamID]._PlayerData.WarriorExp =
-                    Math.Round(PlayerManagers[steamID]._PlayerData.WarriorExp + exp) - ExpToLevelUp(steamID);
+                Tuple<int, double> UpdateData = new Tuple<int, double>(
+                    PlayerManagers[steamID]._PlayerData.ClassInfo["Warrior"].Item1 + 1,
+                    PlayerManagers[steamID]._PlayerData.ClassInfo["Warrior"].Item2 + exp - ExpToLevelUp(steamID)
+                );
+
+                PlayerManagers[steamID]._PlayerData.ClassInfo["Warrior"] = UpdateData;
 
                 if (Instance.Config.BroadcastLevelUp)
                 {
                     string name =
                         MySession.Static.Players.TryGetIdentityNameFromSteamId(PlayerManagers[steamID]._PlayerData.SteamId);
                     ChatManager.SendMessageAsOther("Roles Manager",
-                        $"{name} is now a level {PlayerManagers[steamID]._PlayerData.WarriorLevel} Warrior!", Color.ForestGreen);
+                        $"{name} is now a level {PlayerManagers[steamID]._PlayerData.ClassInfo["Warrior"].Item1} Warrior!", Color.ForestGreen);
                 }
                 else
                 {
@@ -157,7 +160,11 @@ namespace RPGPlugin.PointManagementSystem
             }
             else
             {
-                PlayerManagers[steamID]._PlayerData.WarriorExp += exp;
+                Tuple<int, double> UpdateData = new Tuple<int, double>(
+                    PlayerManagers[steamID]._PlayerData.ClassInfo["Warrior"].Item1,
+                    PlayerManagers[steamID]._PlayerData.ClassInfo["Warrior"].Item2 + exp - ExpToLevelUp(steamID)
+                );
+                PlayerManagers[steamID]._PlayerData.ClassInfo["Warrior"] = UpdateData;
             }
 
             return Task.CompletedTask;
