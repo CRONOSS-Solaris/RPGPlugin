@@ -19,8 +19,6 @@ using Torch.Session;
 using VRage.GameServices;
 using RPGPlugin.Utils;
 using Sandbox.Game.Multiplayer;
-using Newtonsoft.Json;
-
 
 namespace RPGPlugin
 {
@@ -40,7 +38,7 @@ namespace RPGPlugin
         public bool DelayFinished;
 
         public RolesControl _control;
-
+        
         public UserControl GetControl() => _control ?? (_control = new RolesControl(this));
         private Persistent<RPGPluginConfig> _config;
         public RPGPluginConfig Config => _config?.Data;
@@ -50,17 +48,6 @@ namespace RPGPlugin
             base.Init(torch);
             Instance = this;
             SetupConfig();
-
-            // Registration of role configuration classes
-            var minerConfig = new MinerConfig();
-            minerConfig.RegisterClass();
-
-            var warriorConfig = new WarriorConfig();
-            warriorConfig.RegisterClass();
-
-            var hunterConfig = new HunterConfig();
-            hunterConfig.RegisterClass();
-
             _delayManagers.Stop();
             _delayManagers.Elapsed += DelayManagersOnElapsed;
             TorchSessionManager sessionManager = Torch.Managers.GetManager<TorchSessionManager>();
@@ -95,7 +82,7 @@ namespace RPGPlugin
                     Log.Error($"Player {player.DisplayName} [{player.Id.SteamId}] datafile could not be loaded.");
                 }
             }
-
+            
             MyMultiplayer.Static.ClientJoined += PlayerConnected;
             MyMultiplayer.Static.ClientLeft += PlayerDisconnected;
             DelayFinished = true;
@@ -127,7 +114,7 @@ namespace RPGPlugin
         {
             // Unload them from the system, free up resources.
             MyPlayer player = MySession.Static.Players.TryGetPlayerBySteamId(steamID);
-
+            
             if (!PlayerManagers.ContainsKey(steamID))
             {
                 Log.Error($"Unable to save profile for player [SteamID:{steamID}], it was probably not loaded.");
@@ -139,7 +126,7 @@ namespace RPGPlugin
 
         private async void SaveAllPlayersForShutDown()
         {
-            foreach (KeyValuePair<ulong, PlayerManager> manager in PlayerManagers)
+            foreach (KeyValuePair<ulong,PlayerManager> manager in PlayerManagers)
             {
                 await manager.Value.SavePlayerData();
                 Log.Info("Roles Tracking Finished For " + manager.Key);
@@ -165,45 +152,54 @@ namespace RPGPlugin
             Directory.CreateDirectory(playerDataPath);
 
             // set the config file path
-            string configFile = Path.Combine(StoragePath, "RPGPluginConfig.json");
+            string configFile = Path.Combine(StoragePath, "RPGPluginConfig.xml");
 
             if (!File.Exists(configFile))
             {
-                _config = new Persistent<RPGPluginConfig>(configFile, new RPGPluginConfig());
-                Save();
+                _config = new Persistent<RPGPluginConfig>(configFile);
+                _config.Save();
             }
             else
             {
                 try
                 {
-                    using (var streamReader = new StreamReader(configFile))
-                    {
-                        var json = streamReader.ReadToEnd();
-                        var configData = JsonConvert.DeserializeObject<RPGPluginConfig>(json);
-                        _config = new Persistent<RPGPluginConfig>(configFile, configData);
-                    }
+                    _config = Persistent<RPGPluginConfig>.Load(configFile);
                 }
                 catch (Exception e)
                 {
                     Log.Warn(e);
+                }
+
+                if (_config?.Data == null)
+                {
                     Log.Info("Create Default Config, because none was found!");
                     _config = new Persistent<RPGPluginConfig>(configFile, new RPGPluginConfig());
-                    Save();
+                    _config.Save();
+                }
+                else
+                {
+                    try
+                    {
+                        var xmlSerializer = new XmlSerializer(typeof(RPGPluginConfig));
+                        using (var streamReader = new StreamReader(configFile))
+                        {
+                            var configData = (RPGPluginConfig)xmlSerializer.Deserialize(streamReader);
+                            _config = new Persistent<RPGPluginConfig>(configFile, configData);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Warn(e);
+                    }
                 }
             }
         }
-
-
 
         public void Save()
         {
             try
             {
-                using (var streamWriter = new StreamWriter(Path.Combine(StoragePath, "RPGPluginConfig.json"), false))
-                {
-                    var json = JsonConvert.SerializeObject(_config.Data, Formatting.Indented);
-                    streamWriter.Write(json);
-                }
+                _config.Save();
                 Log.Info("Main Configuration Saved.");
             }
             catch (IOException e)

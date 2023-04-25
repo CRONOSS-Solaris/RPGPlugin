@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Torch;
-using Newtonsoft.Json;
-
+using VRage.Collections;
 
 namespace RPGPlugin
 {
