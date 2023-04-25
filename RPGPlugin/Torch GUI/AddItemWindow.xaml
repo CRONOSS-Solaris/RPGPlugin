@@ -244,10 +244,10 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Label Content="Ore name:" Grid.Column="0" Grid.Row="0" Style="{StaticResource LabelStyle}"/>
+        <Label Content="ITEM NAME:" Grid.Column="0" Grid.Row="0" Style="{StaticResource LabelStyle}"/>
         <TextBox x:Name="ItemNameTextBox" Grid.Column="1" Grid.Row="0" Margin="10" Style="{DynamicResource TextBoxStyle1}" SelectionBrush="DarkSlateGray" FontWeight="Bold"/>
 
-        <Label Content="Exp per ore:" Grid.Column="0" Grid.Row="1" Style="{StaticResource LabelStyle}"/>
+        <Label Content="EXP PER ITEM:" Grid.Column="0" Grid.Row="1" Style="{StaticResource LabelStyle}"/>
         <TextBox x:Name="ExpPerItemTextBox" Grid.Column="1" Grid.Row="1" Margin="10" Style="{DynamicResource TextBoxStyle1}" SelectionBrush="DarkSlateGray" FontWeight="Bold"/>
 
         <Button Content="ADD ORE" Grid.Row="2" Grid.Column="0" Margin="10,10,10,0" Click="AddItemButton_Click" Height="28" VerticalAlignment="Top" Style="{StaticResource ButtonStyle}" FontWeight="Bold"/>
@@ -255,7 +255,7 @@
 
         <DataGrid x:Name="ItemDataGrid" Grid.Row="3" Grid.ColumnSpan="2" Margin="10" AutoGenerateColumns="False" FontSize="14" FontWeight="Bold" Style="{StaticResource DataGridStyle}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="MINERAL" Binding="{Binding OreName}" Width="*" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" />
+                <DataGridTextColumn Header="NAME" Binding="{Binding OreName}" Width="*" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" />
                 <DataGridTextColumn Header="EXPERIENCE" Binding="{Binding ExpPerOre}" Width="*" HeaderStyle="{StaticResource DataGridColumnHeaderStyle2}"/>
             </DataGrid.Columns>
         </DataGrid>
