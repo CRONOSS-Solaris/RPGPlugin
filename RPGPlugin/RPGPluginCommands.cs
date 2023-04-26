@@ -73,19 +73,27 @@ namespace RPGPlugin
                 Context.Respond("Players data will not be loaded shortly after restarts to allow the server to stabilize.");
                 return;
             }
-            
+
             if (!Roles.PlayerManagers.ContainsKey(Context.Player.SteamUserId))
             {
                 Context.Respond("Problem loading your profile or your profile has not been loaded yet. Please contact staff about this error if it continues.");
                 return;
             }
-            
+
+            // Check if the player has a role
+            var currentPlayerRole = Roles.PlayerManagers[Context.Player.SteamUserId].GetRole();
+            if (string.IsNullOrEmpty(currentPlayerRole))
+            {
+                Context.Respond("You have not selected a role yet. Please choose a role using the '!r setrole [RoleName]' command.");
+                return;
+            }
+
             StringBuilder reply = new StringBuilder();
             reply.AppendLine("*** Information ***");
             reply.AppendLine("—————————————————————————————");
-            reply.AppendLine($"Current Role: {Roles.PlayerManagers[Context.Player.SteamUserId].GetRole()}");
+            reply.AppendLine($"Current Role: {currentPlayerRole}");
             reply.AppendLine("—————————————————————————————");
-            foreach (Tuple<string,string> role in Roles.Instance.Config.RegisteredRoles)
+            foreach (Tuple<string, string> role in Roles.Instance.Config.RegisteredRoles)
             {
                 reply.AppendLine($"{role.Item1}:");
                 reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.SteamUserId]._PlayerData.ClassInfo[role.Item1].Item1}.");
