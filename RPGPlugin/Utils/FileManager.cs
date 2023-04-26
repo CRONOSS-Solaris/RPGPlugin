@@ -2,9 +2,9 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.World;
+using Newtonsoft.Json;
 
 namespace RPGPlugin.Utils
 {
@@ -15,11 +15,11 @@ namespace RPGPlugin.Utils
         private static object _fileLock = new object();
         private static TimeSpan _lockTimeOut = TimeSpan.FromMilliseconds(500);
         private const string DATA_DIRECTORY = "Instance/RPGPlugin/Player Data/";
-        private const string DATA_FILE_EXTENSION = ".xml";
-        
+        private const string DATA_FILE_EXTENSION = ".json";
+
         private static PlayerData _data(ulong steamID)
         {
-            bool lockTaken = false; 
+            bool lockTaken = false;
             try
             {
                 Monitor.TryEnter(_fileLock, _lockTimeOut, ref lockTaken);
@@ -47,8 +47,7 @@ namespace RPGPlugin.Utils
                     {
                         using (var reader = new StreamReader(filePath))
                         {
-                            var serializer = new XmlSerializer(typeof(PlayerData));
-                            var playerData = (PlayerData) serializer.Deserialize(reader);
+                            var playerData = JsonConvert.DeserializeObject<PlayerData>(reader.ReadToEnd());
                             return playerData;
                         }
                     }
@@ -78,14 +77,14 @@ namespace RPGPlugin.Utils
             }
             finally
             {
-                if(lockTaken)
+                if (lockTaken)
                     Monitor.Exit(_fileLock);
             }
         }
 
         private static bool _data(PlayerData data)
         {
-            bool lockTaken = false; 
+            bool lockTaken = false;
             try
             {
                 Monitor.TryEnter(_fileLock, _lockTimeOut, ref lockTaken);
@@ -106,8 +105,8 @@ namespace RPGPlugin.Utils
                     {
                         using (var writer = new StreamWriter(filePath))
                         {
-                            var serializer = new XmlSerializer(typeof(PlayerData));
-                            serializer.Serialize(writer, data);
+                            var json = JsonConvert.SerializeObject(data);
+                            writer.Write(json);
                             Roles.Log.Warn("Saved player data.");
                             return true;
                         }
@@ -132,7 +131,7 @@ namespace RPGPlugin.Utils
             }
             finally
             {
-                if(lockTaken)
+                if (lockTaken)
                     Monitor.Exit(_fileLock);
             }
         }
@@ -144,8 +143,9 @@ namespace RPGPlugin.Utils
 
         public static Task<bool> SavePlayerData(PlayerData playerData) // public async access to save data
         {
-             bool result = _data(playerData);
-             return Task.FromResult(result);
+            bool result = _data(playerData);
+            return Task.FromResult(result);
         }
     }
 }
+
