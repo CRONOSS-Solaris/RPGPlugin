@@ -52,14 +52,7 @@ namespace RPGPlugin
             SetupConfig();
 
             // Registration of role configuration classes
-            var minerConfig = new MinerConfig();
-            minerConfig.RegisterClass();
-
-            var warriorConfig = new WarriorConfig();
-            warriorConfig.RegisterClass();
-
-            var hunterConfig = new HunterConfig();
-            hunterConfig.RegisterClass();
+            // This is called on class auto-load!
 
             _delayManagers.Stop();
             _delayManagers.Elapsed += DelayManagersOnElapsed;
@@ -72,8 +65,8 @@ namespace RPGPlugin
             patchManager = DependencyProviderExtensions.GetManager<PatchManager>(torch.Managers);
             patchContext = patchManager.AcquireContext();
             DrillPatch.Patch(patchContext);
-            RoleAgent.allConfigs();
-            RoleAgent.allClasses();
+            RoleAgent.LoadAllConfigs();
+            RoleAgent.LoadAllClasses();
             Save();
         }
 
@@ -165,29 +158,51 @@ namespace RPGPlugin
             Directory.CreateDirectory(playerDataPath);
 
             // set the config file path
-            string configFile = Path.Combine(StoragePath, "RPGPluginConfig.json");
+            // we prefer xml over json because it is easier to edit for the user..
+            // most users are not experienced with json format.  xml is more familiar.
+            // the class config are fine as json as they really don't need to be edited by the user.
+            // any issues serializing to xml can be fixed by implementing a serializable version of 
+            // what doesnt have ISerializable implemented.
+            string configFile = Path.Combine(StoragePath, "RPGPluginConfig.xml");
 
             if (!File.Exists(configFile))
             {
-                _config = new Persistent<RPGPluginConfig>(configFile, new RPGPluginConfig());
-                Save();
+                _config = new Persistent<RPGPluginConfig>(configFile);
+                _config.Save();
             }
             else
             {
                 try
                 {
-                    using (var streamReader = new StreamReader(configFile))
-                    {
-                        var json = streamReader.ReadToEnd();
-                        var configData = JsonConvert.DeserializeObject<RPGPluginConfig>(json);
-                        _config = new Persistent<RPGPluginConfig>(configFile, configData);
-                    }
+                    _config = Persistent<RPGPluginConfig>.Load(configFile);
                 }
                 catch (Exception e)
                 {
                     Log.Warn(e);
+                   
+                }
+                
+                if (_config?.Data == null)
+                {
                     Log.Info("Create Default Config, because none was found!");
                     _config = new Persistent<RPGPluginConfig>(configFile, new RPGPluginConfig());
+                    _config.Save();
+                }
+                else
+                {
+                    try
+                    {
+                        var xmlSerializer = new XmlSerializer(typeof(RPGPluginConfig));
+                        using (var streamReader = new StreamReader(configFile))
+                        {
+                            var configData = (RPGPluginConfig)xmlSerializer.Deserialize(streamReader);
+                            _config = new Persistent<RPGPluginConfig>(configFile, configData);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Warn(e);
+                    }
                     Save();
                 }
             }
@@ -199,11 +214,7 @@ namespace RPGPlugin
         {
             try
             {
-                using (var streamWriter = new StreamWriter(Path.Combine(StoragePath, "RPGPluginConfig.json"), false))
-                {
-                    var json = JsonConvert.SerializeObject(_config.Data, Formatting.Indented);
-                    streamWriter.Write(json);
-                }
+                _config.Save();                
                 Log.Info("Main Configuration Saved.");
             }
             catch (IOException e)

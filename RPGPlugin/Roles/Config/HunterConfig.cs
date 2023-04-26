@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using RPGPlugin.Utils;
 
 namespace RPGPlugin
 {
@@ -28,7 +29,7 @@ namespace RPGPlugin
 
         public override void RegisterClass()
         {
-            Tuple<string, string> RoleToRegister = new Tuple<string, string>("Hunter", "Specialized in attacking NPC ships and creatures.");
+            SerializableTuple<string, string> RoleToRegister = new SerializableTuple<string, string>{Item1 = "Hunter", Item2 = "Specialized in attacking NPC ships and creatures."};
             
             if (!Roles.Instance.Config.RegisteredRoles.Contains(RoleToRegister))
                 Roles.Instance.Config.RegisteredRoles.Add(RoleToRegister);

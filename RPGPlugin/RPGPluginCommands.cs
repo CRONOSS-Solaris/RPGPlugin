@@ -42,7 +42,9 @@ namespace RPGPlugin
                 Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(roleName);
                 await Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData();
                 Context.Respond($"Your role has been updated to [{roleName}]");
+                return;
             }
+            Context.Respond("That role is not registered. Use /r roles to see the list of available roles.");
         }
 
         [Command("roles", "Displays the list of available roles and their descriptions.")]
@@ -50,7 +52,7 @@ namespace RPGPlugin
         public void ListRoles()
         {
             StringBuilder message = new StringBuilder();
-            foreach (Tuple<string,string> role in Roles.Instance.Config.RegisteredRoles)
+            foreach (SerializableTuple<string,string> role in Roles.Instance.Config.RegisteredRoles)
                 message.AppendLine($"{role.Item1} -> {role.Item2}");
             
             Context.Respond(message.ToString());
@@ -93,7 +95,7 @@ namespace RPGPlugin
             reply.AppendLine("—————————————————————————————");
             reply.AppendLine($"Current Role: {currentPlayerRole}");
             reply.AppendLine("—————————————————————————————");
-            foreach (Tuple<string, string> role in Roles.Instance.Config.RegisteredRoles)
+            foreach (SerializableTuple<string,string> role in Roles.Instance.Config.RegisteredRoles)
             {
                 reply.AppendLine($"{role.Item1}:");
                 reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.SteamUserId]._PlayerData.ClassInfo[role.Item1].Item1}.");
