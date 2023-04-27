@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Text;
 using RPGPlugin.Utils;
@@ -38,23 +38,15 @@ namespace RPGPlugin
             // Check if the role is valid
             if (!Roles.Instance.Config.RegisteredRoles.Any(r => r.Item1.Equals(roleName, StringComparison.OrdinalIgnoreCase)))
             {
-                Context.Respond($"Invalid role. Please choose from the following: {string.Join(", ", Roles.Instance.Config.RegisteredRoles.Select(r => r.Item1))}");
+
+                if (roleName != Roles.Instance.Config.RegisteredRoles[index].Item1) continue;
+                
+                Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(roleName);
+                await Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData();
+                Context.Respond($"Your role has been updated to [{roleName}]");
                 return;
             }
-
-            // Set the role
-            Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(roleName);
-
-            // Initialize the ClassInfo dictionary for the selected role if not already present
-            if (!Roles.PlayerManagers[Context.Player.SteamUserId]._PlayerData.ClassInfo.ContainsKey(roleName))
-            {
-                Roles.PlayerManagers[Context.Player.SteamUserId]._PlayerData.ClassInfo[roleName] = new Tuple<int, double>(1, 0);
-            }
-
-            // Save player data
-            Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData().Wait(); // Preferably use async/await properly as in your original code, but it requires changing the method signature and related code
-
-            Context.Respond($"Your role has been updated to [{roleName}]");
+            Context.Respond("That role is not registered. Use /r roles to see the list of available roles.");
         }
 
 
@@ -63,7 +55,7 @@ namespace RPGPlugin
         public void ListRoles()
         {
             StringBuilder message = new StringBuilder();
-            foreach (Tuple<string,string> role in Roles.Instance.Config.RegisteredRoles)
+            foreach (SerializableTuple<string,string> role in Roles.Instance.Config.RegisteredRoles)
                 message.AppendLine($"{role.Item1} -> {role.Item2}");
             
             Context.Respond(message.ToString());
@@ -106,7 +98,7 @@ namespace RPGPlugin
             reply.AppendLine("—————————————————————————————");
             reply.AppendLine($"Current Role: {currentPlayerRole}");
             reply.AppendLine("—————————————————————————————");
-            foreach (Tuple<string, string> role in Roles.Instance.Config.RegisteredRoles)
+            foreach (SerializableTuple<string,string> role in Roles.Instance.Config.RegisteredRoles)
             {
                 if (!Roles.PlayerManagers[Context.Player.SteamUserId]._PlayerData.ClassInfo.ContainsKey(role.Item1))
                 {

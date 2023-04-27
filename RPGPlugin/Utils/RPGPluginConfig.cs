@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using RPGPlugin.Utils;
 using Torch;
-using VRage.Collections;
-using Newtonsoft.Json;
 
 
 namespace RPGPlugin
@@ -18,7 +17,7 @@ namespace RPGPlugin
         public string SaveLocation { get => _saveLocation; set => SetValue(ref _saveLocation, value); }
 
         // ROLE, Description  -  Registered by the class itself.
-        private List<Tuple<string, string>> _registeredRoles = new List<Tuple<string, string>>();
-        public List<Tuple<string, string>> RegisteredRoles { get => _registeredRoles; set => SetValue(ref _registeredRoles, value); }
+        private List<SerializableTuple<string, string>> _registeredRoles = new List<SerializableTuple<string, string>>();
+        public List<SerializableTuple<string, string>> RegisteredRoles { get => _registeredRoles; set => SetValue(ref _registeredRoles, value); }
     }
 }

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using RPGPlugin;
-using Sandbox.Game.GameSystems.Conveyors;
 
 public class PlayerData
 {
