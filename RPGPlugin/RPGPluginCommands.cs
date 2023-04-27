@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using RPGPlugin.Utils;
 using Torch.Commands;
@@ -14,7 +15,7 @@ namespace RPGPlugin
 
         [Command("setrole", "Set your role")]
         [Permission(MyPromoteLevel.None)]
-        public async void SetRole(string roleName)
+        public void SetRole(string roleName)
         {
             if (Context.Player == null)
             {
@@ -34,16 +35,28 @@ namespace RPGPlugin
                 return;
             }
 
-            // Get player Manager
-            for (int index = Roles.Instance.Config.RegisteredRoles.Count - 1; index >= 0; index--)
+            // Check if the role is valid
+            if (!Roles.Instance.Config.RegisteredRoles.Any(r => r.Item1.Equals(roleName, StringComparison.OrdinalIgnoreCase)))
             {
-                if (roleName != Roles.Instance.Config.RegisteredRoles[index].Item1) continue;
-                
-                Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(roleName);
-                await Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData();
-                Context.Respond($"Your role has been updated to [{roleName}]");
+                Context.Respond($"Invalid role. Please choose from the following: {string.Join(", ", Roles.Instance.Config.RegisteredRoles.Select(r => r.Item1))}");
+                return;
             }
+
+            // Set the role
+            Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(roleName);
+
+            // Initialize the ClassInfo dictionary for the selected role if not already present
+            if (!Roles.PlayerManagers[Context.Player.SteamUserId]._PlayerData.ClassInfo.ContainsKey(roleName))
+            {
+                Roles.PlayerManagers[Context.Player.SteamUserId]._PlayerData.ClassInfo[roleName] = new Tuple<int, double>(1, 0);
+            }
+
+            // Save player data
+            Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData().Wait(); // Preferably use async/await properly as in your original code, but it requires changing the method signature and related code
+
+            Context.Respond($"Your role has been updated to [{roleName}]");
         }
+
 
         [Command("roles", "Displays the list of available roles and their descriptions.")]
         [Permission(MyPromoteLevel.None)]
@@ -95,11 +108,18 @@ namespace RPGPlugin
             reply.AppendLine("—————————————————————————————");
             foreach (Tuple<string, string> role in Roles.Instance.Config.RegisteredRoles)
             {
+                if (!Roles.PlayerManagers[Context.Player.SteamUserId]._PlayerData.ClassInfo.ContainsKey(role.Item1))
+                {
+                    // If the player does not have the role yet, continue the loop
+                    continue;
+                }
+
                 reply.AppendLine($"{role.Item1}:");
                 reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.SteamUserId]._PlayerData.ClassInfo[role.Item1].Item1}.");
                 reply.AppendLine($"Exp needed for next level: {Roles.roles[role.Item1 + "Class"].ExpToLevelUp(Context.Player.SteamUserId).ToString()}.");
                 reply.AppendLine("—————————————————————————————");
             }
+
             Context.Respond(reply.ToString());
         }
     }
