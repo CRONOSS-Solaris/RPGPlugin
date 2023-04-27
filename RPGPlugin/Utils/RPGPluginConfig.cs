@@ -19,5 +19,6 @@ namespace RPGPlugin
         // ROLE, Description  -  Registered by the class itself.
         private List<SerializableTuple<string, string>> _registeredRoles = new List<SerializableTuple<string, string>>();
         public List<SerializableTuple<string, string>> RegisteredRoles { get => _registeredRoles; set => SetValue(ref _registeredRoles, value); }
+        
     }
 }

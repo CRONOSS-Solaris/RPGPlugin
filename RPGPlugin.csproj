@@ -138,6 +138,9 @@
     <Compile Include="RPGPlugin\Roles\Config\PlayerData.cs" />
     <Compile Include="RPGPlugin\Roles\Config\SampleConfig.cs" />
     <Compile Include="RPGPlugin\Roles\Config\WarriorConfig.cs" />
+    <Compile Include="RPGPlugin\Roles\View\HunterView.xaml.cs">
+      <DependentUpon>HunterView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="RPGPlugin\RPGPluginManager.cs" />
     <Compile Include="RPGPlugin\RPGPlugin.cs" />
     <Compile Include="RPGPlugin\RPGPluginCommands.cs" />
@@ -151,6 +154,7 @@
       <DependentUpon>RPGPluginControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="RPGPlugin\Utils\FileManager.cs" />
+    <Compile Include="RPGPlugin\Utils\HelperFunctions.cs" />
     <Compile Include="RPGPlugin\Utils\RoleManager.cs" />
     <Compile Include="RPGPlugin\Utils\Objects.cs" />
     <Compile Include="RPGPlugin\Utils\RPGPluginConfig.cs" />
@@ -179,6 +183,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="RPGPlugin\Roles\View\HunterView.xaml" />
     <Page Include="RPGPlugin\Torch GUI\EditItemWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -195,9 +200,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="RPGPlugin\Roles\View\" />
   </ItemGroup>
   <Target Name="Zip" BeforeTargets="AfterBuild">
     <MakeDir Directories="$(SolutionDir)\Build\" />

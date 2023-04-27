@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using RPGPlugin.PointManagementSystem;
 
 namespace RPGPlugin.Utils
@@ -12,7 +13,7 @@ namespace RPGPlugin.Utils
     /// </summary>
     public static class RoleAgent
     {
-        public static void LoadAllConfigs()
+        public static async Task LoadAllConfigs()
         {
             Assembly asm = Assembly.GetExecutingAssembly();
             IEnumerable<Type> types = asm.GetTypes().Where(t => t.IsSubclassOf(typeof(configBase)));
@@ -20,14 +21,14 @@ namespace RPGPlugin.Utils
             {
                 if (t.Name == "SampleConfig") continue;
                 configBase instance = (configBase)Activator.CreateInstance(t);
-                instance.init();
-                instance.LoadConfig();
-                instance.RegisterClass();
+                await instance.init();
+                await instance.LoadConfig();
                 Roles.classConfigs.Add(t.Name, instance);
+                await instance.RegisterClass();
             }
         }
         
-        public static void LoadAllClasses()
+        public static Task LoadAllClasses()
         {
             Assembly asm = Assembly.GetExecutingAssembly();
             IEnumerable<Type> types = asm.GetTypes().Where(t => t.IsSubclassOf(typeof(ClassesBase)));
@@ -38,6 +39,8 @@ namespace RPGPlugin.Utils
                 instance.init();
                 Roles.roles.Add(t.Name,instance);
             }
+            
+            return Task.CompletedTask;
         }
 
         public static void OnLoaded()

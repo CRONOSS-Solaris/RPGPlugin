@@ -29,15 +29,15 @@ namespace RPGPlugin
         /// <summary>
         /// Initializer, always start with base.int(). This sets the config file save location and name.
         /// </summary>
-        public virtual void init()
+        public virtual Task init()
         {
-            
+            return Task.CompletedTask;
         }
 
         /// <summary>
         /// Register the class type in the master list!
         /// </summary>
-        public abstract void RegisterClass();
+        public abstract Task RegisterClass();
 
         protected virtual string GetFileName()
         {
@@ -48,7 +48,7 @@ namespace RPGPlugin
         /// <summary>
         /// GetConfig().Results returns your your config data as json. 
         /// </summary>
-        public abstract void LoadConfig();
+        public abstract Task LoadConfig();
         
         /// <summary>
         /// The following SHOULD work in most cases: 

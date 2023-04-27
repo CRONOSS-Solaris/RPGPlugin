@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using RPGPlugin.Utils;
@@ -18,7 +19,7 @@ namespace RPGPlugin
         public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } =
             new ObservableCollection<KeyValuePair<int, int>>();
 
-        public override void init()
+        public override Task init()
         {
             // Initialize class with default settings, will be replaced if a config file is loaded.
             ExpRatio.Add(new KeyValuePair<string, double>("EnemyPlayer",        25  ));
@@ -31,25 +32,27 @@ namespace RPGPlugin
 
             //test skill point system
             SkillPoints.Add(new KeyValuePair<int, int>(2, 1));
+            return Task.CompletedTask;
         }
         
-        public override void RegisterClass()
+        public override Task RegisterClass()
         {
             SerializableTuple<string, string> RoleToRegister = new SerializableTuple<string, string>{Item1 = "Warrior", Item2 = "Specialized in battles and destruction of other engineers things!."};
+
+            if (Roles.Instance.Config.RegisteredRoles.Any(Role => Role.Item1.Equals(RoleToRegister.Item1, StringComparison.OrdinalIgnoreCase))) return Task.CompletedTask;
             
-            if (!Roles.Instance.Config.RegisteredRoles.Contains(RoleToRegister))
-                Roles.Instance.Config.RegisteredRoles.Add(RoleToRegister);
-            else
-                Roles.Log.Warn("Warior Role already registered!");
-            
+            Roles.Instance.Config.RegisteredRoles.Add(RoleToRegister);
+            Roles.Log.Warn($"Registered New Class: {RoleToRegister.Item1}");
+            return Task.CompletedTask;
         }
 
-        public override void LoadConfig()
+        public override Task LoadConfig()
         {
             string data = GetConfig().Result;
-            if (data == null) return;
+            if (data == null) return Task.CompletedTask;
             WarriorConfig classConfig = JsonConvert.DeserializeObject<WarriorConfig>(data);
             ExpRatio = classConfig.ExpRatio;
+            return Task.CompletedTask;
         }
 
         public override async Task SaveConfig()
@@ -57,6 +60,5 @@ namespace RPGPlugin
             string jsonData = JsonConvert.SerializeObject(this, Formatting.Indented);
             await SaveConfig(jsonData);
         }
-    
     }
 }

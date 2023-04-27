@@ -15,7 +15,7 @@ namespace RPGPlugin
         public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } =
             new ObservableCollection<KeyValuePair<int, int>>();
 
-        public override void init()
+        public override Task init()
         {
             // Always run this method first!
             // base.init();
@@ -23,9 +23,10 @@ namespace RPGPlugin
             // Set your default XP values here, they will load before your config fill
             // will, and will be used if no config file has been created at this point.
             // See MinerClass for an example.
+            return Task.CompletedTask;
         }
 
-        public override void LoadConfig()
+        public override Task LoadConfig()
         {
             // This will load your default settings when called.  If none exist you
             // should create default settings in a new method.
@@ -33,6 +34,7 @@ namespace RPGPlugin
             // Returns your config file in json format if it exists, null if not.
             // string data = GetConfig().Result;
             // if (data == null) return;
+            return Task.CompletedTask;
         }
 
         public override Task SaveConfig()
@@ -46,7 +48,7 @@ namespace RPGPlugin
             return Task.CompletedTask;
         }
         
-        public override void RegisterClass()
+        public override Task RegisterClass()
         {
             /*
             Tuple<string, string> RoleToRegister = new Tuple<string, string>("This Is The Class Title", "This Is A Description Of The Class");
@@ -54,6 +56,7 @@ namespace RPGPlugin
             if (!Roles.Instance.Config.RegisteredRoles.Contains(RoleToRegister))
                 Roles.Instance.Config.RegisteredRoles.Add(RoleToRegister);                
             */
+            return Task.CompletedTask;
         }
     }
 }
