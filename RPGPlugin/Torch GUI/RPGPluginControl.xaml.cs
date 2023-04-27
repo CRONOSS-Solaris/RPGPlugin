@@ -9,12 +9,7 @@ namespace RPGPlugin
     public partial class RolesControl : UserControl
     {
         private Roles Plugin { get; }
-        public ObservableCollection<KeyValuePair<string, double>> ExpRatio
-        {
-            get => Roles.classConfigs["MinerConfig"].ExpRatio;
-            set => Roles.classConfigs["MinerConfig"].ExpRatio = value;
-        }
-
+        
         private RolesControl()
         {
             InitializeComponent();
@@ -24,6 +19,11 @@ namespace RPGPlugin
         {
             Plugin = plugin;
             DataContext = this;
+            BaseSaveLocation.DataContext = plugin.Config;
+            SettingsTab.DataContext = plugin.Config;
+            
+            // ** These should go to a view for each class at some point.  Each view can register in code behind. 
+            // RPGPluginControl.xaml can add them in code behind.  Create a tab for each registered view and use the view for tabitem content.
             // Miner Config
             ExpRatioDataGrid.DataContext = (MinerConfig)Roles.classConfigs["MinerConfig"];
             ExpRatioDataGrid.ItemsSource = Roles.classConfigs["MinerConfig"].ExpRatio;

@@ -151,7 +151,7 @@
       <DependentUpon>RPGPluginControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="RPGPlugin\Utils\FileManager.cs" />
-    <Compile Include="RPGPlugin\Utils\Helper.cs" />
+    <Compile Include="RPGPlugin\Utils\RoleManager.cs" />
     <Compile Include="RPGPlugin\Utils\Objects.cs" />
     <Compile Include="RPGPlugin\Utils\RPGPluginConfig.cs" />
     <EmbeddedResource Include="RPGPlugin\Properties\Resources.resx">
@@ -196,7 +196,9 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="RPGPlugin\Roles\View\" />
+  </ItemGroup>
   <Target Name="Zip" BeforeTargets="AfterBuild">
     <MakeDir Directories="$(SolutionDir)\Build\" />
     <ZipDirectory SourceDirectory="$(OutputPath)" DestinationFile="$(SolutionDir)\Build\$(MSBuildProjectName).zip" Overwrite="true" />
