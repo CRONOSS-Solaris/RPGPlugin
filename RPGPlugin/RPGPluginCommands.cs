@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
+using RPGPlugin.Utils;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game.ModAPI;
@@ -22,40 +24,24 @@ namespace RPGPlugin
 
             if (!Roles.Instance.DelayFinished)
             {
-                Context.Respond("Your profile has not been loaded yet.  Your actions are still logged and points applied when your profile is loaded.  Check again in a few minutes.");
+                Context.Respond("Players data will not be loaded immediately after restarts to allow the server to stabilize.");
+                return;
             }
 
-            if (!Roles.PlayerManagers.ContainsKey(Context.Player.IdentityId))
+            if (!Roles.PlayerManagers.ContainsKey(Context.Player.SteamUserId))
             {
                 Context.Respond("Problem loading your profile.");
                 return;
             }
 
             // Get player Manager
-            switch (roleName.ToLower()) // No need for case sensitivity.
+            for (int index = Roles.Instance.Config.RegisteredRoles.Count - 1; index >= 0; index--)
             {
-                case "norole":
-                    Roles.PlayerManagers[Context.Player.IdentityId]._PlayerData.SelectedRole = PlayerManager.FromRoles.NoRole;
-                    await Roles.PlayerManagers[Context.Player.IdentityId].SavePlayerData();
-                    Context.Respond("Your role has been updated to [No Role]");
-                    break;
-
-                case "miner":
-                    Roles.PlayerManagers[Context.Player.IdentityId]._PlayerData.SelectedRole = PlayerManager.FromRoles.Miner;
-                    await Roles.PlayerManagers[Context.Player.IdentityId].SavePlayerData();
-                    Context.Respond("Your role has been updated to [Miner]");
-                    break;
-
-                case "warrior":
-                    Roles.PlayerManagers[Context.Player.IdentityId]._PlayerData.SelectedRole = PlayerManager.FromRoles.Warrior;
-                    await Roles.PlayerManagers[Context.Player.IdentityId].SavePlayerData();
-                    Context.Respond("Your role has been updated to [Warrior]");
-                    break;
-
-                default:
-                    Context.Respond("No role with that name found, check your spelling and try again.");
-                    break;
-            
+                if (roleName != Roles.Instance.Config.RegisteredRoles[index].Item1) continue;
+                
+                Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(roleName);
+                await Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData();
+                Context.Respond($"Your role has been updated to [{roleName}]");
             }
         }
 
@@ -63,14 +49,14 @@ namespace RPGPlugin
         [Permission(MyPromoteLevel.None)]
         public void ListRoles()
         {
-            StringBuilder reply = new StringBuilder();
-            reply.AppendLine("Available roles:");
-            reply.AppendLine("Miner - This role allows you to mine and gather resources more efficiently.");
-            reply.AppendLine("Hunter - This role increases your damage against animals and improves your tracking abilities.");
-            reply.AppendLine("Warrior - This role increases your damage against other players and gives you access to better weapons.");
-
-            Context.Respond(reply.ToString());
+            StringBuilder message = new StringBuilder();
+            foreach (Tuple<string,string> role in Roles.Instance.Config.RegisteredRoles)
+                message.AppendLine($"{role.Item1} -> {role.Item2}");
+            
+            Context.Respond(message.ToString());
         }
+
+
 
         [Command("stats", "Displays current level and exp needed for next level.")]
         [Permission(MyPromoteLevel.None)]
@@ -81,22 +67,40 @@ namespace RPGPlugin
                 Context.Respond("This is a player command.");
                 return;
             }
-            
-            if (!Roles.PlayerManagers.ContainsKey(Context.Player.IdentityId))
+
+            if (!Roles.Instance.DelayFinished)
             {
-                Context.Respond("Problem loading your profile, please contact staff about this error if it continues.");
+                Context.Respond("Players data will not be loaded shortly after restarts to allow the server to stabilize.");
                 return;
             }
-            
+
+            if (!Roles.PlayerManagers.ContainsKey(Context.Player.SteamUserId))
+            {
+                Context.Respond("Problem loading your profile or your profile has not been loaded yet. Please contact staff about this error if it continues.");
+                return;
+            }
+
+            // Check if the player has a role
+            var currentPlayerRole = Roles.PlayerManagers[Context.Player.SteamUserId].GetRole();
+            if (string.IsNullOrEmpty(currentPlayerRole))
+            {
+                Context.Respond("You have not selected a role yet. Please choose a role using the '!r setrole [RoleName]' command.");
+                return;
+            }
+
             StringBuilder reply = new StringBuilder();
             reply.AppendLine("*** Information ***");
-            reply.AppendLine("--------------------");
-            reply.AppendLine("Miner:");
-            reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.IdentityId]._PlayerData.MinerLevel.ToString()}.");
-            reply.AppendLine($"Exp needed for next level: {Roles.PlayerManagers[Context.Player.IdentityId].ExpToLevelUp().ToString()}.");
-            reply.AppendLine("--------------------");
+            reply.AppendLine("—————————————————————————————");
+            reply.AppendLine($"Current Role: {currentPlayerRole}");
+            reply.AppendLine("—————————————————————————————");
+            foreach (Tuple<string, string> role in Roles.Instance.Config.RegisteredRoles)
+            {
+                reply.AppendLine($"{role.Item1}:");
+                reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.SteamUserId]._PlayerData.ClassInfo[role.Item1].Item1}.");
+                reply.AppendLine($"Exp needed for next level: {Roles.roles[role.Item1 + "Class"].ExpToLevelUp(Context.Player.SteamUserId).ToString()}.");
+                reply.AppendLine("—————————————————————————————");
+            }
             Context.Respond(reply.ToString());
-            
         }
     }
 }

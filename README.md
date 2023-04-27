@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://discord.gg/AVQ347un9x">
-    <img src="https://img.shields.io/badge/VERSION-0.2.9-blue" alt="Discord Server">
+    <img src="https://img.shields.io/badge/VERSION-0.3.0-blue" alt="Discord Server">
   </a>
   <a href="https://discord.gg/AVQ347un9x">
     <img src="https://discordapp.com/api/guilds/1008603013025374208/widget.png?style=shield" alt="Discord Server">
@@ -41,8 +41,8 @@ Please report any errors, comments or suggestions you encounter to the plugin au
 
 ## 6. Roles that are not implemented:
 
-- Hunter
-- Warrior
+- Hunter ( In Progress )
+- Warrior ( In Progress )
 
 ## Additional important information
 

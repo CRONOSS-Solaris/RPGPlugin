@@ -1,33 +1,48 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Sandbox.Game;
 using VRageMath;
 using RPGPlugin.Utils;
 using Sandbox.Game.World;
-using Sandbox.ModAPI;
 
 namespace RPGPlugin
 {
-    public class PlayerManager
+    public sealed class PlayerManager
     {
-        public PlayerData _PlayerData = new PlayerData();
-        
-        public enum FromRoles {NoRole, Miner, Warrior}
+        public PlayerData _PlayerData { get; set; } = new PlayerData();
+
+        public static List<Tuple<string,string,string,double>> FromRoles = new List<Tuple<string, string, string, double>>();  // Role, Description
 
         public async void InitAsync(ulong steamId)
         {
             await LoadPlayerData(steamId);
         }
 
-        public async void SetRole(FromRoles role)
+        public async void SetRole(string role)
         {
             _PlayerData.SelectedRole = role;
             await SavePlayerData();
         }
 
-        public FromRoles GetRole()
+        public string GetRole()
         {
             return _PlayerData.SelectedRole;
+        }
+
+        public int GetLevel()
+        {
+            return _PlayerData.ClassInfo[GetRole()].Item1;
+        }
+
+        public long GetPlayerID()
+        {
+            return _PlayerData.PlayerID;
+        }
+
+        public ulong GetSteamID()
+        {
+            return _PlayerData.SteamId;
         }
 
         private async Task LoadPlayerData(ulong steamId)
@@ -39,40 +54,6 @@ namespace RPGPlugin
         {
             bool TaskResults = await FileManager.SavePlayerData(_PlayerData);
             return TaskResults;
-        }
-        
-        public Task AddMinerExp(double exp)
-        {
-            double expForLevelUp = (_PlayerData.MinerLevel * (32.4 + _PlayerData.MinerLevel));
-
-            if (_PlayerData.MinerExp + exp >= expForLevelUp)
-            {
-                _PlayerData.MinerLevel++;
-                _PlayerData.MinerExp = Math.Round(_PlayerData.MinerExp + exp) - expForLevelUp;
-                
-                if (Roles.Instance.Config.BroadcastLevelUp)
-                {
-                    string name = MySession.Static.Players.TryGetIdentityNameFromSteamId(_PlayerData.SteamId);
-                    Roles.ChatManager.SendMessageAsOther("Roles Manager", $"{name} is now a level {_PlayerData.MinerLevel} Miner!", Color.ForestGreen);
-                }
-                else
-                {
-                    MyVisualScriptLogicProvider.SendChatMessageColored("You have leveled up!!!", Color.Green, "Roles", _PlayerData.PlayerID);
-                }
-            }
-            else
-            {
-                _PlayerData.MinerExp += exp;
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public int ExpToLevelUp()
-        {
-            int expForLevelUp = (int)Math.Round(_PlayerData.MinerLevel / 3.5 * 10000);
-            
-            return (int)Math.Round(expForLevelUp - _PlayerData.MinerExp);
         }
     }
 }

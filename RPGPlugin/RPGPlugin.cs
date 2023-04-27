@@ -1,15 +1,13 @@
 ﻿using NLog;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Timers;
 using System.Windows.Controls;
 using System.Xml.Serialization;
 using RPGPlugin.PointManagementSystem;
-using RPGPlugin.Utils;
-using Sandbox.Game;
-using Sandbox.Game.Multiplayer;
+using Sandbox.Engine.Multiplayer;
 using Sandbox.Game.World;
 using Torch;
 using Torch.API;
@@ -18,28 +16,31 @@ using Torch.API.Plugins;
 using Torch.API.Session;
 using Torch.Managers.PatchManager;
 using Torch.Session;
+using VRage.GameServices;
+using RPGPlugin.Utils;
+using Sandbox.Game.Multiplayer;
+using Newtonsoft.Json;
+
 
 namespace RPGPlugin
 {
     public class Roles : TorchPluginBase, IWpfPlugin
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        public static Dictionary<long, PlayerManager> PlayerManagers = new Dictionary<long, PlayerManager>();
-        private static Timer AutoSaver = new Timer();
-        public PointManager ExpManager = new PointManager();
-        private static Timer DelayStart = new Timer();
-        public bool DelayFinished;
+        public static ConcurrentDictionary<ulong, PlayerManager> PlayerManagers = new ConcurrentDictionary<ulong, PlayerManager>();
+        public static Dictionary<string, configBase> classConfigs = new Dictionary<string, configBase>();
+        public static Dictionary<string, ClassesBase> roles = new Dictionary<string, ClassesBase>();
+        private Timer _delayManagers = new Timer(TimeSpan.FromSeconds(5).TotalMilliseconds);
         public PatchManager patchManager;
         public PatchContext patchContext;
         public static IChatManagerServer ChatManager => Instance.Torch.CurrentSession.Managers.GetManager<IChatManagerServer>();
 
-        // Instead of writing to their player data file every tick they mine, track and save
-        // all the data periodically.
-        public static Dictionary<ulong, MyPlayer> OnlinePlayersList = new Dictionary<ulong, MyPlayer>();
         public static Roles Instance { get; private set; }
-        public MinerConfig MinerConfig { get; private set; }
+        public bool ServerOnline;
+        public bool DelayFinished;
 
-        private RolesControl _control;
+        public RolesControl _control;
+
         public UserControl GetControl() => _control ?? (_control = new RolesControl(this));
         private Persistent<RPGPluginConfig> _config;
         public RPGPluginConfig Config => _config?.Data;
@@ -49,112 +50,109 @@ namespace RPGPlugin
             base.Init(torch);
             Instance = this;
             SetupConfig();
-            
-            // This is how often all online players data will be saved automatically
-            AutoSaver.Interval = TimeSpan.FromMinutes(1).TotalMilliseconds;
 
-            MinerConfig = MinerConfig.LoadMinerConfig();
+            // Registration of role configuration classes
+            var minerConfig = new MinerConfig();
+            minerConfig.RegisterClass();
 
-            var sessionManager = Torch.Managers.GetManager<TorchSessionManager>();
+            var warriorConfig = new WarriorConfig();
+            warriorConfig.RegisterClass();
+
+            var hunterConfig = new HunterConfig();
+            hunterConfig.RegisterClass();
+
+            _delayManagers.Stop();
+            _delayManagers.Elapsed += DelayManagersOnElapsed;
+            TorchSessionManager sessionManager = Torch.Managers.GetManager<TorchSessionManager>();
             if (sessionManager != null)
                 sessionManager.SessionStateChanged += SessionChanged;
             else
                 Log.Warn("No session manager loaded!");
 
             patchManager = DependencyProviderExtensions.GetManager<PatchManager>(torch.Managers);
-            patchContext = this.patchManager.AcquireContext();
-            Patches.DrillPatch.Patch(patchContext);
+            patchContext = patchManager.AcquireContext();
+            DrillPatch.Patch(patchContext);
+            RoleAgent.allConfigs();
+            RoleAgent.allClasses();
             Save();
         }
-        
+
+        private void DelayManagersOnElapsed(object sender, ElapsedEventArgs e)
+        {
+            Log.Warn("Delay Timer has finished.");
+            if (!ServerOnline) return;
+            if (MySession.Static.SessionSimSpeedServer < 0.7) return;
+            _delayManagers.Stop();
+            _delayManagers.Elapsed -= DelayManagersOnElapsed;
+
+            foreach (MyPlayer player in MySession.Static.Players.GetOnlinePlayers())
+            {
+                PlayerManager _pm = new PlayerManager();
+                _pm.InitAsync(player.Id.SteamId);
+                Log.Warn("Loaded data for player " + player.DisplayName);
+                if (!PlayerManagers.TryAdd(player.Id.SteamId, _pm))
+                {
+                    Log.Error($"Player {player.DisplayName} [{player.Id.SteamId}] datafile could not be loaded.");
+                }
+            }
+
+            MyMultiplayer.Static.ClientJoined += PlayerConnected;
+            MyMultiplayer.Static.ClientLeft += PlayerDisconnected;
+            DelayFinished = true;
+        }
+
         private void SessionChanged(ITorchSession session, TorchSessionState state)
         {
             switch (state)
             {
                 case TorchSessionState.Loaded:
                     Log.Info("Session Loaded!");
-                    DelayStart.Interval = TimeSpan.FromSeconds(30).TotalMilliseconds;
-                    DelayStart.Elapsed += DelayStartActivate;
-                    DelayStart.Start();
-                    Log.Info("Delay Start Timer Active!"); // DEBUG
-                    
+                    _delayManagers.Start();
+                    ServerOnline = true;
+                    RoleAgent.OnLoaded();
                     break;
 
                 case TorchSessionState.Unloading:
+                    ServerOnline = false;
                     Log.Info("Session Unloading!");
-                    MyVisualScriptLogicProvider.PlayerConnected -= LoadPlayerData;
-                    MyVisualScriptLogicProvider.PlayerDisconnected -= PlayerDisconnected;
+                    MyMultiplayer.Static.ClientJoined -= PlayerConnected;
+                    MyMultiplayer.Static.ClientLeft -= PlayerDisconnected;
                     SaveAllPlayersForShutDown();
-                    DelayStart.Stop();
-                    AutoSaver.Stop();
-                    
+                    RoleAgent.Unload();
                     break;
             }
         }
 
-        private async void DelayStartActivate(object sender, ElapsedEventArgs e)
-        {
-            // This is because on server restart, players who rush to connect will trigger connect events
-            // before the server is properly ready and will pass playerid of 0.  This is a standard problem
-            // for both plugins and mods. Welcome to the wonderful world of Keen :=)
-            Log.Info("Role DelayStart activated"); // DEBUG 
-            DelayStart.Stop();
-            DelayStart.Dispose(); // No longer need it, clean it up now.
-            // When a player spawns their ingame data is loaded, now we load their data and update online player list.
-            MyVisualScriptLogicProvider.PlayerConnected += LoadPlayerData;
-            // When a player disconnects, this will save and unload their data and update online player list.
-            MyVisualScriptLogicProvider.PlayerDisconnected += PlayerDisconnected;
-            // Not the connect listeners are active, we can pick up the current logged in players and set them up.
-            List<MyPlayer> onlinePlayers = Sync.Players.GetOnlinePlayers().ToList();
-            foreach (MyPlayer player in onlinePlayers)
-            {
-                await ExpManager.Init(); 
-                LoadPlayerData(player.Identity.IdentityId);
-                
-                Log.Info("Role Data Active For " + player.Identity.DisplayName); // DEBUG
-            }
-
-            DelayFinished = true;
-            onlinePlayers.Clear();
-            AutoSaver.Start();
-        }
-
-        private async void PlayerDisconnected(long playerId)
+        private async void PlayerDisconnected(ulong steamID, MyChatMemberStateChangeEnum myChatMemberStateChangeEnum)
         {
             // Unload them from the system, free up resources.
-            if (!PlayerManagers.ContainsKey(playerId))
+            MyPlayer player = MySession.Static.Players.TryGetPlayerBySteamId(steamID);
+
+            if (!PlayerManagers.ContainsKey(steamID))
             {
-                Log.Error($"Unable to save profile for player [IdentityID:{playerId}], it was probably not loaded.");
+                Log.Error($"Unable to save profile for player [SteamID:{steamID}], it was probably not loaded.");
                 return;
             }
-            await PlayerManagers[playerId].SavePlayerData();
-            PlayerManagers.Remove(playerId);
+            await PlayerManagers[steamID].SavePlayerData();
+            PlayerManagers.TryRemove(steamID, out PlayerManager _);
         }
 
         private async void SaveAllPlayersForShutDown()
         {
-            foreach (KeyValuePair<long,PlayerManager> manager in PlayerManagers)
+            foreach (KeyValuePair<ulong, PlayerManager> manager in PlayerManagers)
             {
                 await manager.Value.SavePlayerData();
-                Log.Info("Roles Tracking Finished For " + manager.Value._PlayerData.PlayerID);
+                Log.Info("Roles Tracking Finished For " + manager.Key);
             }
             PlayerManagers.Clear();
         }
 
-        private void LoadPlayerData(long playerId)
+        private static void PlayerConnected(ulong steamID, string s)
         {
-            ulong SteamID = GetPlayerSteamID(playerId);
+            long playerId = Sync.Players.TryGetIdentityId(steamID);
             PlayerManager roleManager = new PlayerManager();
-            roleManager.InitAsync(SteamID);
-            PlayerManagers.Add(playerId, roleManager);
-            MyPlayer player = MySession.Static.Players.TryGetPlayerBySteamId(SteamID);
-            if (!DelayFinished)
-                OnlinePlayersList.Add(SteamID, player);
-        }
-
-        private ulong GetPlayerSteamID(long playerId)
-        {
-            return MySession.Static.Players.TryGetSteamId(playerId);
+            roleManager.InitAsync(steamID);
+            PlayerManagers.TryAdd(steamID, roleManager);
         }
 
         private void SetupConfig()
@@ -167,59 +165,50 @@ namespace RPGPlugin
             Directory.CreateDirectory(playerDataPath);
 
             // set the config file path
-            string configFile = Path.Combine(StoragePath, "RPGPluginConfig.xml");
+            string configFile = Path.Combine(StoragePath, "RPGPluginConfig.json");
 
             if (!File.Exists(configFile))
             {
-                _config = new Persistent<RPGPluginConfig>(configFile);
-                _config.Save();
+                _config = new Persistent<RPGPluginConfig>(configFile, new RPGPluginConfig());
+                Save();
             }
             else
             {
                 try
                 {
-                    _config = Persistent<RPGPluginConfig>.Load(configFile);
+                    using (var streamReader = new StreamReader(configFile))
+                    {
+                        var json = streamReader.ReadToEnd();
+                        var configData = JsonConvert.DeserializeObject<RPGPluginConfig>(json);
+                        _config = new Persistent<RPGPluginConfig>(configFile, configData);
+                    }
                 }
                 catch (Exception e)
                 {
                     Log.Warn(e);
-                }
-
-                if (_config?.Data == null)
-                {
                     Log.Info("Create Default Config, because none was found!");
                     _config = new Persistent<RPGPluginConfig>(configFile, new RPGPluginConfig());
-                    _config.Save();
-                }
-                else
-                {
-                    try
-                    {
-                        var xmlSerializer = new XmlSerializer(typeof(RPGPluginConfig));
-                        using (var streamReader = new StreamReader(configFile))
-                        {
-                            var configData = (RPGPluginConfig)xmlSerializer.Deserialize(streamReader);
-                            _config = new Persistent<RPGPluginConfig>(configFile, configData);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Warn(e);
-                    }
+                    Save();
                 }
             }
         }
+
+
 
         public void Save()
         {
             try
             {
-                _config.Save();
-                Log.Info("Configuration Saved.");
+                using (var streamWriter = new StreamWriter(Path.Combine(StoragePath, "RPGPluginConfig.json"), false))
+                {
+                    var json = JsonConvert.SerializeObject(_config.Data, Formatting.Indented);
+                    streamWriter.Write(json);
+                }
+                Log.Info("Main Configuration Saved.");
             }
             catch (IOException e)
             {
-                Log.Warn(e, "Configuration failed to save");
+                Log.Warn(e, "Main Configuration Saved during plugin loading.");
             }
         }
     }

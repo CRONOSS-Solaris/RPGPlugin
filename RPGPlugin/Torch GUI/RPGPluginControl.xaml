@@ -7,62 +7,150 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800">
 
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/RPGPlugin;component/CustomStyles.xaml" />
+                <ResourceDictionary Source="/RPGPlugin;component/Simple Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <Style x:Key="TabItemStyle" TargetType="TabItem">
+                <Setter Property="Foreground" Value="DarkSlateGray"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Padding" Value="10,5"/>
+            </Style>
+            <Style x:Key="ButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="DarkSlateGray"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontSize" Value="11"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Padding" Value="10,5"/>
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Template" Value="{DynamicResource ButtonBase}"/>
+            </Style>
+            <Style x:Key="RoundButtonStyle" TargetType="Button">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" CornerRadius="50">
+                                <ContentPresenter x:Name="contentPresenter" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Margin="{TemplateBinding Padding}"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="Red"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <ControlTemplate x:Key="ButtonBase" TargetType="{x:Type ButtonBase}">
+                <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True" CornerRadius="8">
+                    <ContentPresenter x:Name="contentPresenter" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" ContentStringFormat="{TemplateBinding ContentStringFormat}" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="Button.IsDefaulted" Value="True">
+                        <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                    </Trigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" TargetName="border" Value="#FFBEE6FD"/>
+                        <Setter Property="BorderBrush" TargetName="border" Value="#FF3C7FB1"/>
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter Property="Background" TargetName="border" Value="#FFC4E5F6"/>
+                        <Setter Property="BorderBrush" TargetName="border" Value="#FF2C628B"/>
+                    </Trigger>
+                    <Trigger Property="ToggleButton.IsChecked" Value="True">
+                        <Setter Property="Background" TargetName="border" Value="#FFBCDDEE"/>
+                        <Setter Property="BorderBrush" TargetName="border" Value="#FF245A83"/>
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" TargetName="border" Value="#FFF4F4F4"/>
+                        <Setter Property="BorderBrush" TargetName="border" Value="#FFADB2B5"/>
+                        <Setter Property="Foreground" Value="#FF838383"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </ResourceDictionary>
+    </UserControl.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" SharedSizeGroup="Labels"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition/>
-            <ColumnDefinition Width="39.625" SharedSizeGroup="Buttons"/>
-            <ColumnDefinition Width="38.375"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <TabControl Grid.Row="1" Grid.ColumnSpan="4">
-            <TabItem Header="Main">
+        <TabControl Grid.Row="1" Grid.ColumnSpan="2">
+            <TabItem Header="Main" Style="{StaticResource TabItemStyle}" IsSelected="True">
                 <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="296*"/>
-                        <ColumnDefinition Width="35*"/>
-                    </Grid.ColumnDefinitions>
 
-                    <Label Grid.Row="0" Grid.Column="0" Content="ExpMiningHandlerId:" Margin="5,1,6,9" />
-                    <TextBox Text="{Binding ExpMiningHandlerId, UpdateSourceTrigger=PropertyChanged}" Margin="0,31,0,369" Height="22" HorizontalAlignment="Center" Width="120" TextAlignment="Center" Grid.RowSpan="2" />
-                    <Label Content="1 to 65535" Margin="40,16,42,386" FontSize="8" Grid.RowSpan="2" Background="{x:Null}" />
-                    <Image Source="/RPGPlugin;component/Donate-Button.png" Margin="0,0,10,10" MouseLeftButtonDown="Donate_Click" Stretch="Uniform" Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="200" Height="69"/>
+
+                    <Button Style="{StaticResource DonateButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Click="Donate_Click" Margin="0,0,10,10"/>
+
+                    <ToggleButton x:Name="BroadcastLevelUpToggleButton" Style="{StaticResource ToggleButtonStyle1}" Margin="112.333,16,0,0" Checked="BroadcastLevelUpToggleButton_Checked" Unchecked="BroadcastLevelUpToggleButton_Unchecked" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    <TextBlock HorizontalAlignment="Left" Height="13.25" Margin="10,19.75,0,0" TextWrapping="Wrap" Text="NOTIFICATIONS LVLUP" VerticalAlignment="Top" Width="97.333" FontSize="9" TextAlignment="Center" FontWeight="Bold" Foreground="Black"/>
+                    <Button HorizontalAlignment="Right" Height="64" Margin="0,10,10,0" VerticalAlignment="Top" Width="64" Style="{StaticResource supportbutton}" Click="SupportButton_Click"/>
 
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Miner" Height="20" VerticalAlignment="Top">
+            <TabItem Header="Miner" Style="{StaticResource TabItemStyle}">
                 <Grid>
-                    <Button x:Name="EditOreButton" Content="Edit" Margin="115,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Height="25" Grid.Column="0" Grid.Row="0" Click="EditOreButton_Click"/>
-                    <Button x:Name="DeleteOreButton" Content="Delete" Margin="195,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Height="25" Grid.Column="0" Grid.Row="0" Click="DeleteOreButton_Click"/>
+                    <Button x:Name="EditOreButton" Content="EDIT" Style="{StaticResource ButtonStyle}" Margin="115,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="EditOreButton_Click" Width="75" Height="25" FontSize="10" FontWeight="Bold"/>
+                    <Button x:Name="DeleteOreButton" Content="DELETE" Style="{StaticResource ButtonStyle}" Margin="195,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="DeleteOreButton_Click" Width="75" Height="25" FontSize="10" FontWeight="Bold"/>
 
-                    <Button x:Name="AddNewOreButton" Content="Add new ore" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="100" Height="25" Grid.Column="0" Grid.Row="0" Click="AddNewOreButton_Click"/>
+                    <Button x:Name="AddNewOreButton" Content="ADD NEW ORE" Style="{StaticResource ButtonStyle}" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="AddNewOreButton_Click" Background="DarkSlateGray" Width="100" Height="25" FontWeight="Bold" FontSize="10"/>
 
-                    <DataGrid x:Name="ExpRatioDataGrid" ItemsSource="{Binding MinerConfig.ExpRatio}" AutoGenerateColumns="False" CellEditEnding="ExpRatioDataGrid_CellEditEnding" Height="372" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,40,0,0" Width="260">
+                    <DataGrid Name="ExpRatioDataGrid" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single"
+          Height="372" VerticalAlignment="Top" AutoGenerateColumns="False"
+          Margin="10,39,0,-1" AlternatingRowBackground="Snow" HorizontalAlignment="Left" Width="260" Style="{StaticResource DataGridStyle}" Background="#FFF0F0F0" FontWeight="Bold" >
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Mineral" Binding="{Binding Key}" IsReadOnly="True" Width="*" />
-                            <DataGridTextColumn Header="Experience" Binding="{Binding Value}" Width="*" />
+                            <DataGridTextColumn Header="MINERAL" Binding="{Binding Path=Key}" IsReadOnly="True" Width="*" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" />
+                            <DataGridTextColumn Header="EXPERIENCE" Binding="{Binding Path=Value}" IsReadOnly="True" Width="*" HeaderStyle="{StaticResource DataGridColumnHeaderStyle2}" />
                         </DataGrid.Columns>
                     </DataGrid>
 
+
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Hunter">
-                <Image Height="371" Source="/RPGPlugin;component/comingsoon.png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
+            <TabItem Header="Hunter" Style="{StaticResource TabItemStyle}">
+                <Grid>
+                    <Button x:Name="EditHunterDefinitionButton" Content="EDIT" Style="{StaticResource ButtonStyle}" Margin="115,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="EditHunterDefinitionButton_Click" Width="75" Height="25" FontSize="10" FontWeight="Bold"/>
+                    <Button x:Name="DeleteHunterDefinitionButton" Content="DELETE" Style="{StaticResource ButtonStyle}" Margin="195,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="DeleteHunterDefinitionButton_Click" Width="75" Height="25" FontSize="10" FontWeight="Bold"/>
+                    <Button x:Name="AddNewHunterDefinitionButton" Content="ADD NEW" Style="{StaticResource ButtonStyle}" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="AddNewHunterDefinitionButton_Click" Background="DarkSlateGray" Width="100" Height="25" FontWeight="Bold" FontSize="10"/>
+
+                    <DataGrid Name="HunterDataGrid" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single"
+                              Height="372" VerticalAlignment="Top" AutoGenerateColumns="False"
+                              Margin="10,39,0,-1" AlternatingRowBackground="Snow" HorizontalAlignment="Left" Width="260" Style="{StaticResource DataGridStyle}" Background="#FFF0F0F0" FontWeight="Bold" >
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="NAME" Binding="{Binding Path=Key}" IsReadOnly="True" Width="*" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" />
+                            <DataGridTextColumn Header="EXPERIENCE" Binding="{Binding Path=Value}" IsReadOnly="True" Width="*" HeaderStyle="{StaticResource DataGridColumnHeaderStyle2}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
             </TabItem>
 
-            <TabItem Header="Warrior">
-                <Image Height="371" Source="/RPGPlugin;component/comingsoon.png" Stretch="Fill" Width="742" RenderTransformOrigin="0.499,0.518"/>
+            <TabItem Header="Warrior" Style="{StaticResource TabItemStyle}">
+                <Grid>
+                    <Button x:Name="EditWarriorDefinitionButton" Content="EDIT" Style="{StaticResource ButtonStyle}" Margin="115,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="EditWarriorDefinitionButton_Click" Width="75" Height="25" FontSize="10" FontWeight="Bold"/>
+                    <Button x:Name="DeleteWarriorDefinitionButton" Content="DELETE" Style="{StaticResource ButtonStyle}" Margin="195,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="DeleteWarriorDefinitionButton_Click" Width="75" Height="25" FontSize="10" FontWeight="Bold"/>
+                    <Button x:Name="AddNewWarriorDefinitionButton" Content="ADD NEW" Style="{StaticResource ButtonStyle}" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0" Grid.Row="0" Click="AddNewWarriorDefinitionButton_Click" Background="DarkSlateGray" Width="100" Height="25" FontWeight="Bold" FontSize="10"/>
+
+                    <DataGrid Name="WarriorDataGrid" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single"
+                              Height="372" VerticalAlignment="Top" AutoGenerateColumns="False"
+                              Margin="10,39,0,-1" AlternatingRowBackground="Snow" HorizontalAlignment="Left" Width="260" Style="{StaticResource DataGridStyle}" Background="#FFF0F0F0" FontWeight="Bold" >
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="NAME" Binding="{Binding Path=Key}" IsReadOnly="True" Width="*" HeaderStyle="{StaticResource DataGridColumnHeaderStyle}" />
+                            <DataGridTextColumn Header="EXPERIENCE" Binding="{Binding Path=Value}" IsReadOnly="True" Width="*" HeaderStyle="{StaticResource DataGridColumnHeaderStyle2}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
             </TabItem>
         </TabControl>
     </Grid>

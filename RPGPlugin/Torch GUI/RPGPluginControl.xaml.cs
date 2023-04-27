@@ -1,14 +1,19 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 
 namespace RPGPlugin
 {
     public partial class RolesControl : UserControl
     {
         private Roles Plugin { get; }
+        public ObservableCollection<KeyValuePair<string, double>> ExpRatio
+        {
+            get => Roles.classConfigs["MinerConfig"].ExpRatio;
+            set => Roles.classConfigs["MinerConfig"].ExpRatio = value;
+        }
 
         private RolesControl()
         {
@@ -18,85 +23,133 @@ namespace RPGPlugin
         public RolesControl(Roles plugin) : this()
         {
             Plugin = plugin;
-            DataContext = plugin;
+            DataContext = this;
+            // Miner Config
+            ExpRatioDataGrid.DataContext = (MinerConfig)Roles.classConfigs["MinerConfig"];
+            ExpRatioDataGrid.ItemsSource = Roles.classConfigs["MinerConfig"].ExpRatio;
+            // Warrior Config
+            WarriorDataGrid.DataContext = (WarriorConfig)Roles.classConfigs["WarriorConfig"];
+            WarriorDataGrid.ItemsSource = Roles.classConfigs["WarriorConfig"].ExpRatio;
+            // Hunter Config
+            HunterDataGrid.DataContext = (HunterConfig)Roles.classConfigs["HunterConfig"];
+            HunterDataGrid.ItemsSource = Roles.classConfigs["HunterConfig"].ExpRatio;
         }
 
         public void Donate_Click(object sender, RoutedEventArgs e)
         {
-            System.Diagnostics.Process.Start("https://www.paypal.com/donate/?hosted_button_id=HCV9695KQDMFN");
+            Process.Start("https://www.paypal.com/donate/?hosted_button_id=HCV9695KQDMFN");
         }
 
-        private void ExpRatioDataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        // Add New Ore Button | Miner
+        private async void AddNewOreButton_Click(object sender, RoutedEventArgs e)
         {
-            if (e.EditAction == DataGridEditAction.Commit)
+            var addItemWindow = new AddItemWindow { ItemType = ItemType.Ore, Title = "RPGPLUGIN - ADD NEW ORE" };
+
+            if (addItemWindow.ShowDialog() == true)
             {
-                var mineral = ((KeyValuePair<string, double>)e.Row.Item).Key;
-                var newValue = double.Parse(((TextBox)e.EditingElement).Text);
-                Plugin.MinerConfig.ExpRatio[mineral] = newValue;
-                MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
-            }
-        }
+                var newItems = addItemWindow.Items;
 
-        private void AddNewOreButton_Click(object sender, RoutedEventArgs e)
-        {
-            var addOreWindow = new AddOreWindow();
-
-            if (addOreWindow.ShowDialog() == true)
-            {
-                var newOres = addOreWindow.Ores;
-
-                foreach (var newOre in newOres)
+                foreach (var newItem in newItems)
                 {
-                    if (!Plugin.MinerConfig.ExpRatio.ContainsKey(newOre.Key))
+                    bool found = false;
+                    for (int index = Roles.classConfigs["MinerConfig"].ExpRatio.Count - 1; index >= 0; index--)
                     {
-                        Plugin.MinerConfig.ExpRatio.Add(newOre.Key, newOre.Value);
+                        var kvp = Roles.classConfigs["MinerConfig"].ExpRatio[index];
+                        if (kvp.Key != newItem.Key) continue;
+                        MessageBox.Show($"Ore with the name '{newItem.Key}' already exists. Please choose a different name.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        found = true;
+                        break;
                     }
-                    else
-                    {
-                        MessageBox.Show($"Ore with the name '{newOre.Key}' already exists. Please choose a different name.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
 
-                MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
-                ExpRatioDataGrid.Items.Refresh();
+                    if (!found)
+                        Roles.classConfigs["MinerConfig"].ExpRatio.Add(new KeyValuePair<string, double>(newItem.Key, newItem.Value));
+                }
+                await Roles.classConfigs["MinerConfig"].SaveConfig();
             }
         }
 
+        // Add New Warrior Definition Button
+        private async void AddNewWarriorDefinitionButton_Click(object sender, RoutedEventArgs e)
+        {
+            var addItemWindow = new AddItemWindow { ItemType = ItemType.WarriorDefinition, Title = "RPGPLUGIN - ADD NEW WARRIOR DEFINITION" };
 
-        private void EditOreButton_Click(object sender, RoutedEventArgs e)
+            if (addItemWindow.ShowDialog() == true)
+            {
+                var newItems = addItemWindow.Items;
+
+                foreach (var newItem in newItems)
+                {
+                    bool found = false;
+                    for (int index = Roles.classConfigs["WarriorConfig"].ExpRatio.Count - 1; index >= 0; index--)
+                    {
+                        var kvp = Roles.classConfigs["WarriorConfig"].ExpRatio[index];
+                        if (kvp.Key != newItem.Key) continue;
+                        MessageBox.Show($"Warrior definition with the name '{newItem.Key}' already exists. Please choose a different name.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        found = true;
+                        break;
+                    }
+
+                    if (!found)
+                        Roles.classConfigs["WarriorConfig"].ExpRatio.Add(new KeyValuePair<string, double>(newItem.Key, newItem.Value));
+                }
+                await Roles.classConfigs["WarriorConfig"].SaveConfig();
+            }
+        }
+
+        // Add New Hunter Definition Button
+        private async void AddNewHunterDefinitionButton_Click(object sender, RoutedEventArgs e)
+        {
+            var addItemWindow = new AddItemWindow { ItemType = ItemType.HunterDefinition, Title = "RPGPLUGIN - ADD NEW HUNTER DEFINITION" };
+
+            if (addItemWindow.ShowDialog() == true)
+            {
+                var newItems = addItemWindow.Items;
+
+                foreach (var newItem in newItems)
+                {
+                    bool found = false;
+                    for (int index = Roles.classConfigs["HunterConfig"].ExpRatio.Count - 1; index >= 0; index--)
+                    {
+                        var kvp = Roles.classConfigs["HunterConfig"].ExpRatio[index];
+                        if (kvp.Key != newItem.Key) continue;
+                        MessageBox.Show($"Hunter definition with the name '{newItem.Key}' already exists. Please choose a different name.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        found = true;
+                        break;
+                    }
+
+                    if (!found)
+                        Roles.classConfigs["HunterConfig"].ExpRatio.Add(new KeyValuePair<string, double>(newItem.Key, newItem.Value));
+                }
+                await Roles.classConfigs["HunterConfig"].SaveConfig();
+            }
+        }
+
+        // Edit Ore Button | Miner
+        private async void EditOreButton_Click(object sender, RoutedEventArgs e)
         {
             if (ExpRatioDataGrid.SelectedItem != null)
             {
-                var selectedOre = (KeyValuePair<string, double>)ExpRatioDataGrid.SelectedItem;
-                var editOreWindow = new EditOreWindow
+                var selectedItem = (KeyValuePair<string, double>)ExpRatioDataGrid.SelectedItem;
+                var editItemWindow = new EditItemWindow { ItemType = ItemType.Ore, Title = "RPGPLUGIN - EDIT ORE" };
+
+                editItemWindow.SetItemName(selectedItem.Key);
+                editItemWindow.SetExpPerItem(selectedItem.Value);
+
+                if (editItemWindow.ShowDialog() == true)
                 {
-                    Title = "Edit ore"
-                };
-                editOreWindow.SetOreName(selectedOre.Key);
-                editOreWindow.SetExpPerOre(selectedOre.Value);
+                    string editedItemName = editItemWindow.ItemName;
+                    double editedItemExp = editItemWindow.ExpPerItem;
 
-
-                if (editOreWindow.ShowDialog() == true)
-                {
-                    string editedOreName = editOreWindow.OreName;
-                    double editedOreExp = editOreWindow.ExpPerOre;
-
-                    if (selectedOre.Key != editedOreName)
+                    if (string.IsNullOrWhiteSpace(editedItemName))
                     {
-                        if (!Plugin.MinerConfig.ExpRatio.ContainsKey(editedOreName))
-                        {
-                            Plugin.MinerConfig.ExpRatio.Remove(selectedOre.Key);
-                        }
-                        else
-                        {
-                            MessageBox.Show("Ore with the provided name already exists. Please choose a different name.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                            return;
-                        }
+                        MessageBox.Show("Enter a valid Ore name!!!", "Input Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
                     }
 
-                    Plugin.MinerConfig.ExpRatio[editedOreName] = editedOreExp;
-                    MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
-                    ExpRatioDataGrid.Items.Refresh();
+                    Roles.classConfigs["MinerConfig"].ExpRatio.Remove(selectedItem);
+                    Roles.classConfigs["MinerConfig"].ExpRatio.Add(new KeyValuePair<string, double>(editedItemName, editedItemExp));
+
+                    await Roles.classConfigs["MinerConfig"].SaveConfig();  // No longer blocking UI thread on IO operation.
                 }
             }
             else
@@ -105,40 +158,153 @@ namespace RPGPlugin
             }
         }
 
-        private void DeleteOreButton_Click(object sender, RoutedEventArgs e)
+        //Edit Warrior Definition Button
+        private async void EditWarriorDefinitionButton_Click(object sender, RoutedEventArgs e)
         {
-            if (ExpRatioDataGrid.SelectedItems.Count > 0)
+            if (WarriorDataGrid.SelectedItem != null)
+            {
+                var selectedItem = (KeyValuePair<string, double>)WarriorDataGrid.SelectedItem;
+                var editItemWindow = new EditItemWindow { ItemType = ItemType.WarriorDefinition, Title = "RPGPLUGIN - EDIT WARRIOR DEFINITION" };
+
+                editItemWindow.SetItemName(selectedItem.Key);
+                editItemWindow.SetExpPerItem(selectedItem.Value);
+
+                if (editItemWindow.ShowDialog() == true)
+                {
+                    string editedItemName = editItemWindow.ItemName;
+                    double editedItemExp = editItemWindow.ExpPerItem;
+
+                    if (string.IsNullOrWhiteSpace(editedItemName))
+                    {
+                        MessageBox.Show("Enter a valid Warrior Definition name!!!", "Input Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
+                    Roles.classConfigs["WarriorConfig"].ExpRatio.Remove(selectedItem);
+                    Roles.classConfigs["WarriorConfig"].ExpRatio.Add(new KeyValuePair<string, double>(editedItemName, editedItemExp));
+
+                    await Roles.classConfigs["WarriorConfig"].SaveConfig();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a warrior definition to edit.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        //Edit Hunter Definition Button
+        private async void EditHunterDefinitionButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (HunterDataGrid.SelectedItem != null)
+            {
+                var selectedItem = (KeyValuePair<string, double>)HunterDataGrid.SelectedItem;
+                var editItemWindow = new EditItemWindow { ItemType = ItemType.HunterDefinition, Title = "RPGPLUGIN - EDIT HUNTER DEFINITION" };
+
+                editItemWindow.SetItemName(selectedItem.Key);
+                editItemWindow.SetExpPerItem(selectedItem.Value);
+
+                if (editItemWindow.ShowDialog() == true)
+                {
+                    string editedItemName = editItemWindow.ItemName;
+                    double editedItemExp = editItemWindow.ExpPerItem;
+
+                    if (string.IsNullOrWhiteSpace(editedItemName))
+                    {
+                        MessageBox.Show("Enter a valid Hunter Definition name!!!", "Input Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
+                    Roles.classConfigs["HunterConfig"].ExpRatio.Remove(selectedItem);
+                    Roles.classConfigs["HunterConfig"].ExpRatio.Add(new KeyValuePair<string, double>(editedItemName, editedItemExp));
+
+                    await Roles.classConfigs["HunterConfig"].SaveConfig();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a Hunter definition to edit.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        //Delete Ore Button | Miner
+        private async void DeleteOreButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ExpRatioDataGrid.SelectedItem != null)
             {
                 MessageBoxResult result;
-                if (ExpRatioDataGrid.SelectedItems.Count == 1)
-                {
-                    var selectedOre = (KeyValuePair<string, double>)ExpRatioDataGrid.SelectedItem;
-                    result = MessageBox.Show($"Are you sure you want to delete the ore '{selectedOre.Key}'?", "Delete Ore", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        Plugin.MinerConfig.ExpRatio.Remove(selectedOre.Key);
-                        MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
-                        ExpRatioDataGrid.Items.Refresh();
-                    }
-                }
-                else
-                {
-                    result = MessageBox.Show($"Are you sure you want to delete the selected {ExpRatioDataGrid.SelectedItems.Count} ores?", "Delete Ores", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        foreach (var selectedOre in ExpRatioDataGrid.SelectedItems.Cast<KeyValuePair<string, double>>().ToList())
-                        {
-                            Plugin.MinerConfig.ExpRatio.Remove(selectedOre.Key);
-                        }
-                        MinerConfig.SaveMinerConfig(Plugin.MinerConfig);
-                        ExpRatioDataGrid.Items.Refresh();
-                    }
-                }
+                
+                var selectedOre = (KeyValuePair<string, double>)ExpRatioDataGrid.SelectedItem;
+                result = MessageBox.Show($"Are you sure you want to delete the ore '{selectedOre.Key}'?", "Delete Ore", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result != MessageBoxResult.Yes) return;
+                
+                Roles.classConfigs["MinerConfig"].ExpRatio.Remove(selectedOre);
+                await Roles.classConfigs["MinerConfig"].SaveConfig();
             }
             else
             {
                 MessageBox.Show("Please select at least one ore to delete.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        // Delete Warrior Definition Button
+        private async void DeleteWarriorDefinitionButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (WarriorDataGrid.SelectedItem != null)
+            {
+                MessageBoxResult result;
+
+                var selectedOre = (KeyValuePair<string, double>)WarriorDataGrid.SelectedItem;
+                result = MessageBox.Show($"Are you sure you want to delete the WarriorDefinition '{selectedOre.Key}'?", "Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result != MessageBoxResult.Yes) return;
+
+                Roles.classConfigs["WarriorConfig"].ExpRatio.Remove(selectedOre);
+                await Roles.classConfigs["WarriorConfig"].SaveConfig();
+            }
+            else
+            {
+                MessageBox.Show("Please select at least one WarriorDefinition to delete.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // Delete Hunter Definition Button
+        private async void DeleteHunterDefinitionButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (HunterDataGrid.SelectedItem != null)
+            {
+                MessageBoxResult result;
+
+                var selectedOre = (KeyValuePair<string, double>)HunterDataGrid.SelectedItem;
+                result = MessageBox.Show($"Are you sure you want to delete the HunterDefinition '{selectedOre.Key}'?", "Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result != MessageBoxResult.Yes) return;
+
+                Roles.classConfigs["HunterConfig"].ExpRatio.Remove(selectedOre);
+                await Roles.classConfigs["HunterConfig"].SaveConfig();
+            }
+            else
+            {
+                MessageBox.Show("Please select at least one HunterDefinition to delete.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void SupportButton_Click(object sender, RoutedEventArgs e)
+        {
+            string discordInviteLink = "https://discord.com/invite/TqbCaHu7wr";
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = discordInviteLink,
+                UseShellExecute = true
+            });
+        }
+
+        private void BroadcastLevelUpToggleButton_Checked(object sender, RoutedEventArgs e)
+        {
+            Plugin.Config.BroadcastLevelUp = true;
+        }
+
+        private void BroadcastLevelUpToggleButton_Unchecked(object sender, RoutedEventArgs e)
+        {
+            Plugin.Config.BroadcastLevelUp = false;
+        }
+
     }
 }
