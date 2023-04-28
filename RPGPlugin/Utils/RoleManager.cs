@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
 using RPGPlugin.PointManagementSystem;
 
 namespace RPGPlugin.Utils
@@ -46,14 +48,31 @@ namespace RPGPlugin.Utils
                 config.Value.LoadConfig();
                 config.Value.RegisterClass();
             }
-
-            foreach (KeyValuePair<string, ClassesBase> role in Roles.roles)
-            {
-                role.Value.init();
-            }
-
-            asm = null;
             return Task.CompletedTask;
+        }
+
+        public static List<TabItem> GetRoleViews()
+        {
+            Type[] types = asm.GetTypes();
+            List<TabItem> tabs = new List<TabItem>();
+            
+            foreach (KeyValuePair<string, configBase> role in Roles.classConfigs)
+            {
+                UserControl classView = null;
+                TabItem newTab = new TabItem();
+                
+                for (int index = types.Length - 1; index >= 0; index--)
+                {
+                    if (types[index].Name != role.Value.ViewName) continue;
+                    
+                    classView = (UserControl) Activator.CreateInstance(types[index]);
+                    newTab.Header = types[index].Name;
+                    newTab.Content = classView;
+                    newTab.Style= (Style) classView.FindResource("TabItemStyle");
+                    tabs.Add(newTab);
+                }
+            }
+            return tabs;
         }
 
         public static void OnLoaded()

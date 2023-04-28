@@ -13,6 +13,9 @@ namespace RPGPlugin
         // Definition of the ExpRatio property, which stores experience point values for individual minerals
 
         /// <inheritdoc />
+        public override string ViewName { get; } = "Miner";
+
+        /// <inheritdoc />
         public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } = new ObservableCollection<KeyValuePair<string, double>>();
         
         //test skill point system

@@ -17,6 +17,11 @@ namespace RPGPlugin
         private static readonly object _lock = new object();
         private static TimeSpan _lockTimeOut = TimeSpan.FromMilliseconds(5000);
         private const string storagePath = "Instance/RPGPlugin/";
+
+        /// <summary>
+        /// Name of your View class.  This is the class that will be used to display your class information in the GUI.
+        /// </summary>
+        public abstract string ViewName { get;}
         
         /// <summary>
         /// Store your class point type and point value per type in this collection.

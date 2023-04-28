@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Threading;
 using Newtonsoft.Json;
 using RPGPlugin.Utils;
 using RPGPlugin.View;
@@ -17,6 +14,10 @@ namespace RPGPlugin
     public sealed class HunterConfig : configBase
     {
         // Definition of the ExpRatio property, which stores experience point values for individual minerals
+
+        /// <inheritdoc />
+        public override string ViewName { get; } = "Hunter";
+        
         /// <inheritdoc />
         public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } =
             new ObservableCollection<KeyValuePair<string, double>>();

@@ -15,6 +15,9 @@ namespace RPGPlugin
         public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } =
             new ObservableCollection<KeyValuePair<int, int>>();
 
+        /// <inheritdoc />
+        public override string ViewName { get; } = "Sample";
+        
         public override void init()
         {
             // Always run this method first!

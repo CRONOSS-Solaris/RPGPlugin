@@ -11,12 +11,17 @@ namespace RPGPlugin
     public sealed class WarriorConfig : configBase
     {
         // Definition of the ExpRatio property, which stores experience point values for individual minerals
+        
+
         /// <inheritdoc />
         public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } = new ObservableCollection<KeyValuePair<string, double>>();
 
         //test skill point system
         public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } = new ObservableCollection<KeyValuePair<int, int>>();
 
+        /// <inheritdoc />
+        public override string ViewName { get; } = "Warrior";
+        
         public override void init()
         {
             // Initialize class with default settings, will be replaced if a config file is loaded.
