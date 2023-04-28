@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using Newtonsoft.Json;
 using RPGPlugin.Utils;
 using RPGPlugin.View;
-using static RPGPlugin.Utils.StaticHelperFunctions;
 
 namespace RPGPlugin
 {
@@ -23,46 +25,40 @@ namespace RPGPlugin
         public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } =
             new ObservableCollection<KeyValuePair<int, int>>();
 
-        public override Task init()
+        public override void init()
         {
             // Initialize class with default settings, will be replaced if a config file is loaded.
             ExpRatio.Add(new KeyValuePair<string, double>("Wolf",        0.0013 ));
             ExpRatio.Add(new KeyValuePair<string, double>("Spider",      0.0013 ));
             ExpRatio.Add(new KeyValuePair<string, double>("SmallBlock",       2 ));
             ExpRatio.Add(new KeyValuePair<string, double>("LargeBlock",      10 ));
-            
-            // Init View
-            
-            StaThreadWrapper(() =>
+
+            StaticHelperFunctions.StaThreadWrapper(() =>
             {
-                UserControl view = new HunterView();
-                view.Visibility = System.Windows.Visibility.Visible;
-                TabItem item = new TabItem {Header = "Hunter", Content = view};
                 
-                Roles.Instance.ClassViews.Add(item);
+                    Roles.Log.Warn($"HunterSTA Thread => {Thread.CurrentThread.ManagedThreadId}");
+                    UserControl classView = new Hunter();
+                    Roles.Instance.classViews.Add("Hunter", classView);
+                
             });
             
-            return Task.CompletedTask;
         }
 
-        public override Task RegisterClass()
+        public override void RegisterClass()
         {
             // Register Class Info
             SerializableTuple<string, string> RoleToRegister = new SerializableTuple<string, string>{Item1 = "Hunter", Item2 = "Specialized in attacking NPC ships and creatures."};
-            if (Roles.Instance.Config.RegisteredRoles.Any(role => role.Item1.Equals(RoleToRegister.Item1, StringComparison.OrdinalIgnoreCase))) return Task.CompletedTask;
+            if (Roles.Instance.Config.RegisteredRoles.Any(role => role.Item1.Equals(RoleToRegister.Item1, StringComparison.OrdinalIgnoreCase))) return ;
             Roles.Instance.Config.RegisteredRoles.Add(RoleToRegister);
             Roles.Log.Warn($"Registered New Class: {RoleToRegister.Item1}");
-            
-            return Task.CompletedTask;
         }
 
-        public override Task LoadConfig()
+        public override void LoadConfig()
         {
             string data = GetConfig().Result;
-            if (data == null) return Task.CompletedTask;
+            if (data == null) return;
             HunterConfig classConfig = JsonConvert.DeserializeObject<HunterConfig>(data);
             ExpRatio = classConfig.ExpRatio;
-            return Task.CompletedTask;
         }
 
         public override async Task SaveConfig()

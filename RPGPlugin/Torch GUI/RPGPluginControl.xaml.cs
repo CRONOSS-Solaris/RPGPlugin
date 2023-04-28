@@ -1,51 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Diagnostics;
-using System.Net.Mime;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
+using NLog;
 using RPGPlugin.Utils;
-using Torch.Collections;
+using Timer = System.Timers.Timer;
 
 namespace RPGPlugin
 {
     public partial class RolesControl : UserControl
     {
         private Roles Plugin { get; }
-        private Timer _delayLoad = new Timer(TimeSpan.FromSeconds(5).TotalMilliseconds);
-        private MtObservableCollection<List<TabItem>, TabItem> views => Roles.Instance.ClassViews;
+        private Timer _delayLoad = new Timer(TimeSpan.FromSeconds(3).TotalMilliseconds);
 
         private RolesControl()
         {
             InitializeComponent();
         }
 
-        private void ClassViewsOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            TabItem item = sender as TabItem;
-            if (item == null) return;
-            SettingsTab.Items.Add((TabItem) sender);
-            _delayLoad.Elapsed += DelayLoadOnElapsed;
-            _delayLoad.Start(); 
-        }
-
         private void DelayLoadOnElapsed(object sender, ElapsedEventArgs e)
         {
+            
+                DelayAsyncWorker(sender, e);
+           
+        }
+
+        private Task DelayAsyncWorker(object sender, ElapsedEventArgs e)
+        {
+            Roles.Log.Warn($"Timer Thread => {Thread.CurrentThread.ManagedThreadId}");
             _delayLoad.Elapsed -= DelayLoadOnElapsed;
-            Application.Current.Dispatcher.BeginInvoke((Action)(() =>
+            
+            foreach (KeyValuePair<string,UserControl> classView in Roles.Instance.classViews)
             {
-                if (views == null || views.Count <= 0) return;
-                foreach (TabItem view in Roles.Instance.ClassViews)
+                Roles.Instance.MainDispatcher.Invoke(() => // Were on the timer thread, method needs to run on UI thread.
                 {
-                    if (view.Header == null ) return;
-                        
-                    SettingsTab.Items.Add(view);
-                        
-                }
-            }));
+                    Helper(classView);
+                });
+                
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private void Helper(KeyValuePair<string, UserControl> classView)
+        {
+            TabItem newView = new TabItem
+            {
+                Header = classView.Key,
+                Content = classView.Value
+            };
+            
+            Roles.Log.Warn("Adding TabItem to SettingsTab.");
+            SettingsTab.Items.Add(newView);
         }
 
         public RolesControl(Roles plugin) : this()
@@ -54,8 +64,9 @@ namespace RPGPlugin
             DataContext = this;
             BaseSaveLocation.DataContext = plugin.Config;
             SettingsTab.DataContext = plugin.Config;
-            
-            Roles.Instance.ClassViews.CollectionChanged += ClassViewsOnCollectionChanged;
+            _delayLoad.Elapsed += DelayLoadOnElapsed;
+            _delayLoad.Start(); 
+            Roles.Log.Warn($"Main View Thread => {Thread.CurrentThread.ManagedThreadId}");
             
             // ** These should go to a view for each class at some point.  Each view can register in code behind. 
             // RPGPluginControl.xaml can add them in code behind.  Create a tab for each registered view and use the view for tabitem content.

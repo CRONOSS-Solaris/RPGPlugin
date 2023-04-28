@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using RPGPlugin.PointManagementSystem;
 
@@ -13,33 +13,46 @@ namespace RPGPlugin.Utils
     /// </summary>
     public static class RoleAgent
     {
-        public static async Task LoadAllConfigs()
+        // Increase load performance by putting this all in one single search through the assembly.
+        // instead of searching through the assembly for one type, than searching again for the next...
+        // Removed LINQ cause that's slow as hell, use reverse for loop is very fast and efficient.
+
+        private static Assembly asm = Assembly.GetExecutingAssembly();
+
+        public static Task LoadAllRoles()
         {
-            Assembly asm = Assembly.GetExecutingAssembly();
-            IEnumerable<Type> types = asm.GetTypes().Where(t => t.IsSubclassOf(typeof(configBase)));
-            foreach (Type t in types)
+            Roles.Log.Warn($"RoleManager Thread => {Thread.CurrentThread.ManagedThreadId}");
+            Type[] types = asm.GetTypes();
+            for (int index = types.Length - 1; index >= 0; index--)
             {
-                if (t.Name == "SampleConfig") continue;
-                configBase instance = (configBase)Activator.CreateInstance(t);
-                await instance.init();
-                await instance.LoadConfig();
-                Roles.classConfigs.Add(t.Name, instance);
-                await instance.RegisterClass();
-            }
-        }
-        
-        public static Task LoadAllClasses()
-        {
-            Assembly asm = Assembly.GetExecutingAssembly();
-            IEnumerable<Type> types = asm.GetTypes().Where(t => t.IsSubclassOf(typeof(ClassesBase)));
-            foreach (Type t in types)
-            {
-                if (t.Name == "SampleClass") continue;
-                ClassesBase instance = (ClassesBase)Activator.CreateInstance(t);
-                instance.init();
-                Roles.roles.Add(t.Name,instance);
+                if (types[index].IsSubclassOf(typeof(configBase)))
+                {
+                    if (types[index].Name == "SampleConfig") continue;
+                    configBase instance = (configBase) Activator.CreateInstance(types[index]);
+                    Roles.classConfigs.Add(types[index].Name, instance);
+                }
+
+                if (types[index].IsSubclassOf(typeof(ClassesBase)))
+                {
+                    if (types[index].Name == "SampleClass") continue;
+                    ClassesBase instance = (ClassesBase) Activator.CreateInstance(types[index]);
+                    Roles.roles.Add(types[index].Name, instance);
+                }
             }
             
+            foreach (KeyValuePair<string, configBase> config in Roles.classConfigs)
+            {
+                config.Value.init();
+                config.Value.LoadConfig();
+                config.Value.RegisterClass();
+            }
+
+            foreach (KeyValuePair<string, ClassesBase> role in Roles.roles)
+            {
+                role.Value.init();
+            }
+
+            asm = null;
             return Task.CompletedTask;
         }
 

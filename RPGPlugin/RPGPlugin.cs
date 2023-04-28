@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using System.Xml.Serialization;
 using RPGPlugin.PointManagementSystem;
 using Sandbox.Engine.Multiplayer;
@@ -20,7 +21,6 @@ using Torch.Managers.PatchManager;
 using Torch.Session;
 using VRage.GameServices;
 using RPGPlugin.Utils;
-using Sandbox.Game.Multiplayer;
 using Torch.Collections;
 using Timer = System.Timers.Timer;
 
@@ -33,8 +33,9 @@ namespace RPGPlugin
         public static ConcurrentDictionary<ulong, PlayerManager> PlayerManagers = new ConcurrentDictionary<ulong, PlayerManager>();
         public static Dictionary<string, configBase> classConfigs = new Dictionary<string, configBase>();
         public static Dictionary<string, ClassesBase> roles = new Dictionary<string, ClassesBase>();
+        public MtObservableSortedDictionary<string, UserControl> classViews = new MtObservableSortedDictionary<string, UserControl>();
+        public readonly Dispatcher MainDispatcher = Dispatcher.CurrentDispatcher;
         private Timer _delayManagers = new Timer(TimeSpan.FromSeconds(5).TotalMilliseconds);
-        public MtObservableCollection<List<TabItem>, TabItem> ClassViews = new MtObservableList<TabItem>();
         public PatchManager patchManager;
         public PatchContext patchContext;
         public static IChatManagerServer ChatManager => Instance.Torch.CurrentSession.Managers.GetManager<IChatManagerServer>();
@@ -52,6 +53,7 @@ namespace RPGPlugin
         public override async void Init(ITorchBase torch)
         {
             base.Init(torch);
+            Roles.Log.Warn($"MainPlugin Thread => {Thread.CurrentThread.ManagedThreadId}");
             Instance = this;
             await SetupConfig();
 
@@ -67,7 +69,7 @@ namespace RPGPlugin
             patchContext = patchManager.AcquireContext();
             DrillPatch.Patch(patchContext);
             await Save();
-            await WaitThenSetupClasses();
+            await RoleAgent.LoadAllRoles();; // Give the system time to write and release the saved config file
         }
 
         private void DelayManagersOnElapsed(object sender, ElapsedEventArgs e)
@@ -119,8 +121,6 @@ namespace RPGPlugin
         private async void PlayerDisconnected(ulong steamID, MyChatMemberStateChangeEnum myChatMemberStateChangeEnum)
         {
             // Unload them from the system, free up resources.
-            MyPlayer player = MySession.Static.Players.TryGetPlayerBySteamId(steamID);
-
             if (!PlayerManagers.ContainsKey(steamID))
             {
                 Log.Error($"Unable to save profile for player [SteamID:{steamID}], it was probably not loaded.");
@@ -142,7 +142,6 @@ namespace RPGPlugin
 
         private static void PlayerConnected(ulong steamID, string s)
         {
-            long playerId = Sync.Players.TryGetIdentityId(steamID);
             PlayerManager roleManager = new PlayerManager();
             roleManager.InitAsync(steamID);
             PlayerManagers.TryAdd(steamID, roleManager);
@@ -217,14 +216,16 @@ namespace RPGPlugin
 
         private async Task WaitThenSetupClasses()
         {
+            // Had issues were roles were loaded faster than the config was created... causes issues.
             await Task.Run(async () =>
             {
                 while (Config == null)
                 {
+                    // If the config is null, wait a second and try again. Repeat until config is loaded.
                     Thread.Sleep(1000);
                 }
-                await RoleAgent.LoadAllConfigs();
-                await RoleAgent.LoadAllClasses();
+
+                await RoleAgent.LoadAllRoles();
             });
             
         }

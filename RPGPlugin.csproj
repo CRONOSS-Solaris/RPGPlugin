@@ -141,6 +141,7 @@
     <Compile Include="RPGPlugin\Roles\View\HunterView.xaml.cs">
       <DependentUpon>HunterView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="RPGPlugin\Roles\View\ViewBase.cs" />
     <Compile Include="RPGPlugin\RPGPluginManager.cs" />
     <Compile Include="RPGPlugin\RPGPlugin.cs" />
     <Compile Include="RPGPlugin\RPGPluginCommands.cs" />

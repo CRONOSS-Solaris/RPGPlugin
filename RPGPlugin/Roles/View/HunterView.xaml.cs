@@ -1,12 +1,19 @@
+using System.Threading;
 using System.Windows.Controls;
 
 namespace RPGPlugin.View
 {
-    public partial class HunterView : UserControl
+    public partial class Hunter : UserControl, ViewBase
     {
-        public HunterView()
+        public Hunter()
         {
             InitializeComponent();
+        }
+
+
+        public void LogThread()
+        {
+            Roles.Log.Warn($"HunterView Thread => {Thread.CurrentThread.ManagedThreadId}");
         }
     }
 }

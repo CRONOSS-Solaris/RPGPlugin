@@ -13,14 +13,12 @@ namespace RPGPlugin
         // Definition of the ExpRatio property, which stores experience point values for individual minerals
 
         /// <inheritdoc />
-        public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } =
-            new ObservableCollection<KeyValuePair<string, double>>();
+        public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } = new ObservableCollection<KeyValuePair<string, double>>();
         
         //test skill point system
-        public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } =
-            new ObservableCollection<KeyValuePair<int, int>>();
+        public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } = new ObservableCollection<KeyValuePair<int, int>>();
 
-        public override Task init()
+        public override void init()
         {
             base.init();
             // Set defaults, will be used if no config file has been created or becomes corrupt.
@@ -35,29 +33,26 @@ namespace RPGPlugin
             ExpRatio.Add(new KeyValuePair<string, double>( "Platinum",  0.28   ));
             ExpRatio.Add(new KeyValuePair<string, double>( "Uranium",   0.30   ));
             ExpRatio.Add(new KeyValuePair<string, double>( "Ice",       0.135  ));
-            return Task.CompletedTask;
         }
         
-        public override Task RegisterClass()
+        public override void RegisterClass()
         {
             SerializableTuple<string, string> RoleToRegister = new SerializableTuple<string, string>{Item1 = "Miner", Item2 = "Specialized in resource extraction."};
 
-            if (Roles.Instance.Config.RegisteredRoles.Any(Role => Role.Item1.Equals(RoleToRegister.Item1, StringComparison.OrdinalIgnoreCase))) return Task.CompletedTask;
+            if (Roles.Instance.Config.RegisteredRoles.Any(Role => Role.Item1.Equals(RoleToRegister.Item1, StringComparison.OrdinalIgnoreCase))) return;
             
             Roles.Instance.Config.RegisteredRoles.Add(RoleToRegister);
             Roles.Log.Warn($"Registered New Class: {RoleToRegister.Item1}");
-            return Task.CompletedTask;
         }
         
 
-        public override Task LoadConfig()
+        public override void LoadConfig()
         {
             string data = GetConfig().Result;
-            if (data == null) return Task.CompletedTask;
+            if (data == null) return;
             
             MinerConfig classConfig = JsonConvert.DeserializeObject<MinerConfig>(data);
             ExpRatio = classConfig.ExpRatio;
-            return Task.CompletedTask;
         }
 
         public override async Task SaveConfig()
