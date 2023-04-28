@@ -127,17 +127,26 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="RPGPlugin\Roles\Behavior\ClassesBase.cs" />
+    <Compile Include="RPGPlugin\Roles\baseClasses\ClassesBase.cs" />
+    <Compile Include="RPGPlugin\Roles\baseClasses\configBase.cs" />
     <Compile Include="RPGPlugin\Roles\Behavior\HunterClass.cs" />
     <Compile Include="RPGPlugin\Roles\Behavior\MinerClass.cs" />
     <Compile Include="RPGPlugin\Roles\Behavior\SampleClass.cs" />
     <Compile Include="RPGPlugin\Roles\Behavior\WarriorClass.cs" />
-    <Compile Include="RPGPlugin\Roles\Config\configBase.cs" />
     <Compile Include="RPGPlugin\Roles\Config\HunterConfig.cs" />
     <Compile Include="RPGPlugin\Roles\Config\MinerConfig.cs" />
     <Compile Include="RPGPlugin\Roles\Config\PlayerData.cs" />
     <Compile Include="RPGPlugin\Roles\Config\SampleConfig.cs" />
     <Compile Include="RPGPlugin\Roles\Config\WarriorConfig.cs" />
+    <Compile Include="RPGPlugin\Roles\View\Hunter.xaml.cs">
+      <DependentUpon>Hunter.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="RPGPlugin\Roles\View\Miner.xaml.cs">
+      <DependentUpon>Miner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="RPGPlugin\Roles\View\Warrior.xaml.cs">
+      <DependentUpon>Warrior.xaml</DependentUpon>
+    </Compile>
     <Compile Include="RPGPlugin\RPGPluginManager.cs" />
     <Compile Include="RPGPlugin\RPGPlugin.cs" />
     <Compile Include="RPGPlugin\RPGPluginCommands.cs" />
@@ -151,6 +160,7 @@
       <DependentUpon>RPGPluginControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="RPGPlugin\Utils\FileManager.cs" />
+    <Compile Include="RPGPlugin\Utils\HelperFunctions.cs" />
     <Compile Include="RPGPlugin\Utils\RoleManager.cs" />
     <Compile Include="RPGPlugin\Utils\Objects.cs" />
     <Compile Include="RPGPlugin\Utils\RPGPluginConfig.cs" />
@@ -179,6 +189,9 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="RPGPlugin\Roles\View\Hunter.xaml" />
+    <Page Include="RPGPlugin\Roles\View\Miner.xaml" />
+    <Page Include="RPGPlugin\Roles\View\Warrior.xaml" />
     <Page Include="RPGPlugin\Torch GUI\EditItemWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -195,9 +208,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="RPGPlugin\Roles\View\" />
   </ItemGroup>
   <Target Name="Zip" BeforeTargets="AfterBuild">
     <MakeDir Directories="$(SolutionDir)\Build\" />

@@ -15,7 +15,7 @@ namespace RPGPlugin
 
         [Command("setrole", "Set your role")]
         [Permission(MyPromoteLevel.None)]
-        public void SetRole(string roleName)
+        public async void SetRole(string roleName)
         {
             if (Context.Player == null)
             {
@@ -36,11 +36,8 @@ namespace RPGPlugin
             }
 
             // Check if the role is valid
-            if (!Roles.Instance.Config.RegisteredRoles.Any(r => r.Item1.Equals(roleName, StringComparison.OrdinalIgnoreCase)))
+            if (Roles.Instance.Config.RegisteredRoles.Any(r => r.Item1.Equals(roleName, StringComparison.OrdinalIgnoreCase)))
             {
-
-                if (roleName != Roles.Instance.Config.RegisteredRoles[index].Item1) continue;
-                
                 Roles.PlayerManagers[Context.Player.SteamUserId].SetRole(roleName);
                 await Roles.PlayerManagers[Context.Player.SteamUserId].SavePlayerData();
                 Context.Respond($"Your role has been updated to [{roleName}]");
@@ -95,9 +92,9 @@ namespace RPGPlugin
 
             StringBuilder reply = new StringBuilder();
             reply.AppendLine("*** Information ***");
-            reply.AppendLine("—————————————————————————————");
+            reply.AppendLine("—————————————————————————");
             reply.AppendLine($"Current Role: {currentPlayerRole}");
-            reply.AppendLine("—————————————————————————————");
+            reply.AppendLine("—————————————————————————");
             foreach (SerializableTuple<string,string> role in Roles.Instance.Config.RegisteredRoles)
             {
                 if (!Roles.PlayerManagers[Context.Player.SteamUserId]._PlayerData.ClassInfo.ContainsKey(role.Item1))
@@ -109,7 +106,7 @@ namespace RPGPlugin
                 reply.AppendLine($"{role.Item1}:");
                 reply.AppendLine($"Current level: {Roles.PlayerManagers[Context.Player.SteamUserId]._PlayerData.ClassInfo[role.Item1].Item1}.");
                 reply.AppendLine($"Exp needed for next level: {Roles.roles[role.Item1 + "Class"].ExpToLevelUp(Context.Player.SteamUserId).ToString()}.");
-                reply.AppendLine("—————————————————————————————");
+                reply.AppendLine("—————————————————————————");
             }
 
             Context.Respond(reply.ToString());

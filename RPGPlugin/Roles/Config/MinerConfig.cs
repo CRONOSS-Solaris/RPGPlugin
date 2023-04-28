@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using RPGPlugin.Utils;
@@ -12,12 +13,13 @@ namespace RPGPlugin
         // Definition of the ExpRatio property, which stores experience point values for individual minerals
 
         /// <inheritdoc />
-        public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } =
-            new ObservableCollection<KeyValuePair<string, double>>();
+        public override string ViewName { get; } = "Miner";
+
+        /// <inheritdoc />
+        public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } = new ObservableCollection<KeyValuePair<string, double>>();
         
         //test skill point system
-        public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } =
-            new ObservableCollection<KeyValuePair<int, int>>();
+        public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } = new ObservableCollection<KeyValuePair<int, int>>();
 
         public override void init()
         {
@@ -39,9 +41,11 @@ namespace RPGPlugin
         public override void RegisterClass()
         {
             SerializableTuple<string, string> RoleToRegister = new SerializableTuple<string, string>{Item1 = "Miner", Item2 = "Specialized in resource extraction."};
+
+            if (Roles.Instance.Config.RegisteredRoles.Any(Role => Role.Item1.Equals(RoleToRegister.Item1, StringComparison.OrdinalIgnoreCase))) return;
             
-            if (!Roles.Instance.Config.RegisteredRoles.Contains(RoleToRegister))
-                Roles.Instance.Config.RegisteredRoles.Add(RoleToRegister);
+            Roles.Instance.Config.RegisteredRoles.Add(RoleToRegister);
+            Roles.Log.Warn($"Registered New Class: {RoleToRegister.Item1}");
         }
         
 
