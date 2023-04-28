@@ -3,8 +3,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using System.Xml.Serialization;
 using RPGPlugin.PointManagementSystem;
 using Sandbox.Engine.Multiplayer;
@@ -18,8 +21,8 @@ using Torch.Managers.PatchManager;
 using Torch.Session;
 using VRage.GameServices;
 using RPGPlugin.Utils;
-using Sandbox.Game.Multiplayer;
-using Newtonsoft.Json;
+using Torch.Collections;
+using Timer = System.Timers.Timer;
 
 
 namespace RPGPlugin
@@ -30,6 +33,8 @@ namespace RPGPlugin
         public static ConcurrentDictionary<ulong, PlayerManager> PlayerManagers = new ConcurrentDictionary<ulong, PlayerManager>();
         public static Dictionary<string, configBase> classConfigs = new Dictionary<string, configBase>();
         public static Dictionary<string, ClassesBase> roles = new Dictionary<string, ClassesBase>();
+        public MtObservableSortedDictionary<string, UserControl> classViews = new MtObservableSortedDictionary<string, UserControl>();
+        public readonly Dispatcher MainDispatcher = Dispatcher.CurrentDispatcher;
         private Timer _delayManagers = new Timer(TimeSpan.FromSeconds(5).TotalMilliseconds);
         public PatchManager patchManager;
         public PatchContext patchContext;
@@ -45,14 +50,12 @@ namespace RPGPlugin
         private Persistent<RPGPluginConfig> _config;
         public RPGPluginConfig Config => _config?.Data;
 
-        public override void Init(ITorchBase torch)
+        public override async void Init(ITorchBase torch)
         {
             base.Init(torch);
+            Roles.Log.Warn($"MainPlugin Thread => {Thread.CurrentThread.ManagedThreadId}");
             Instance = this;
-            SetupConfig();
-
-            // Registration of role configuration classes
-            // This is called on class auto-load!
+            await SetupConfig();
 
             _delayManagers.Stop();
             _delayManagers.Elapsed += DelayManagersOnElapsed;
@@ -62,12 +65,11 @@ namespace RPGPlugin
             else
                 Log.Warn("No session manager loaded!");
 
-            patchManager = DependencyProviderExtensions.GetManager<PatchManager>(torch.Managers);
+            patchManager = torch.Managers.GetManager<PatchManager>();
             patchContext = patchManager.AcquireContext();
             DrillPatch.Patch(patchContext);
-            RoleAgent.LoadAllConfigs();
-            RoleAgent.LoadAllClasses();
-            Save();
+            await Save();
+            await RoleAgent.LoadAllRoles();; // Give the system time to write and release the saved config file
         }
 
         private void DelayManagersOnElapsed(object sender, ElapsedEventArgs e)
@@ -119,8 +121,6 @@ namespace RPGPlugin
         private async void PlayerDisconnected(ulong steamID, MyChatMemberStateChangeEnum myChatMemberStateChangeEnum)
         {
             // Unload them from the system, free up resources.
-            MyPlayer player = MySession.Static.Players.TryGetPlayerBySteamId(steamID);
-
             if (!PlayerManagers.ContainsKey(steamID))
             {
                 Log.Error($"Unable to save profile for player [SteamID:{steamID}], it was probably not loaded.");
@@ -142,13 +142,12 @@ namespace RPGPlugin
 
         private static void PlayerConnected(ulong steamID, string s)
         {
-            long playerId = Sync.Players.TryGetIdentityId(steamID);
             PlayerManager roleManager = new PlayerManager();
             roleManager.InitAsync(steamID);
             PlayerManagers.TryAdd(steamID, roleManager);
         }
 
-        private void SetupConfig()
+        private async Task SetupConfig()
         {
             string dataPath = Path.Combine(StoragePath, "RPGPlugin");
             string playerDataPath = Path.Combine(dataPath, "Player Data");
@@ -156,13 +155,6 @@ namespace RPGPlugin
             // create directories if they do not exist
             Directory.CreateDirectory(dataPath);
             Directory.CreateDirectory(playerDataPath);
-
-            // set the config file path
-            // we prefer xml over json because it is easier to edit for the user..
-            // most users are not experienced with json format.  xml is more familiar.
-            // the class config are fine as json as they really don't need to be edited by the user.
-            // any issues serializing to xml can be fixed by implementing a serializable version of 
-            // what doesnt have ISerializable implemented.
             string configFile = Path.Combine(StoragePath, "RPGPluginConfig.xml");
 
             if (!File.Exists(configFile))
@@ -179,7 +171,6 @@ namespace RPGPlugin
                 catch (Exception e)
                 {
                     Log.Warn(e);
-                   
                 }
                 
                 if (_config?.Data == null)
@@ -203,24 +194,40 @@ namespace RPGPlugin
                     {
                         Log.Warn(e);
                     }
-                    Save();
+                    await Save();
                 }
             }
         }
 
-
-
-        public void Save()
+        public Task Save()
         {
             try
             {
                 _config.Save();                
                 Log.Info("Main Configuration Saved.");
+                return Task.CompletedTask;
             }
             catch (IOException e)
             {
                 Log.Warn(e, "Main Configuration Saved during plugin loading.");
+                return Task.FromException<IOException>(e);
             }
+        }
+
+        private async Task WaitThenSetupClasses()
+        {
+            // Had issues were roles were loaded faster than the config was created... causes issues.
+            await Task.Run(async () =>
+            {
+                while (Config == null)
+                {
+                    // If the config is null, wait a second and try again. Repeat until config is loaded.
+                    Thread.Sleep(1000);
+                }
+
+                await RoleAgent.LoadAllRoles();
+            });
+            
         }
     }
 }

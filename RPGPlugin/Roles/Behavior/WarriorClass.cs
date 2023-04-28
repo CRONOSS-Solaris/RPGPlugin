@@ -23,12 +23,10 @@ namespace RPGPlugin.PointManagementSystem
     {
         /// <inheritdoc />
         /// Point to your classConfig ExpRatio collection
-        public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } =
-            new ObservableCollection<KeyValuePair<string, double>>();
+        public override ObservableCollection<KeyValuePair<string, double>> ExpRatio { get; set; } = new ObservableCollection<KeyValuePair<string, double>>();
 
         //test skill point system
-        public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } =
-            new ObservableCollection<KeyValuePair<int, int>>();
+        public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } = new ObservableCollection<KeyValuePair<int, int>>();
 
         /// <inheritdoc /> 
         public override void init()
@@ -47,32 +45,25 @@ namespace RPGPlugin.PointManagementSystem
             // Deformation damage can be from ramming such as torpedo grids, or a warship hitting another.
             // Will do a sample here.  Be warned... This requires allot of work and will become a bit long... :)
 
-            if (target is MyCubeBlock block)
-            {
-                // Get relation between grid and attacker
-                if (block.IDModule.GetUserRelationToOwner(info.AttackerId) != MyRelationsBetweenPlayerAndBlock.Friends)
+            if (!(target is MyCubeBlock block)) return;
+            
+            // Get relation between grid and attacker
+            if (block.IDModule.GetUserRelationToOwner(info.AttackerId) == MyRelationsBetweenPlayerAndBlock.Friends) return;
+            
+            if (block.CubeGrid.GridSizeEnum == MyCubeSize.Small)
+                _ProcessQueue.Enqueue(new ExperienceAction
                 {
-                    switch (block.CubeGrid.GridSizeEnum)
-                    {
-                        case MyCubeSize.Small:
-                            _ProcessQueue.Enqueue( new ExperienceAction
-                            {
-                                ownerID = info.AttackerId,
-                                subType = "EnemySmallBlock",
-                                amount = info.Amount // This gives points per point of damage.
-                            });
-                            break;
-                        case MyCubeSize.Large:
-                            _ProcessQueue.Enqueue( new ExperienceAction
-                            {
-                                ownerID = info.AttackerId,
-                                subType = "EnemyLargeBlock",
-                                amount = info.Amount // This gives points per point of damage.
-                            });
-                            break;
-                    }
-                }
-            }
+                    ownerID = info.AttackerId,
+                    subType = "EnemySmallBlock",
+                    amount = info.Amount // This gives points per point of damage.
+                });
+            else if (block.CubeGrid.GridSizeEnum == MyCubeSize.Large)
+                _ProcessQueue.Enqueue(new ExperienceAction
+                {
+                    ownerID = info.AttackerId,
+                    subType = "EnemyLargeBlock",
+                    amount = info.Amount // This gives points per point of damage.
+                });
         }
 
         /// <inheritdoc />
