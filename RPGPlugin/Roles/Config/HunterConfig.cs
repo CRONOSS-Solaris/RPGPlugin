@@ -25,6 +25,10 @@ namespace RPGPlugin
             ExpRatio.Add(new KeyValuePair<string, double>("Spider",      0.0013 ));
             ExpRatio.Add(new KeyValuePair<string, double>("SmallBlock",       2 ));
             ExpRatio.Add(new KeyValuePair<string, double>("LargeBlock",      10 ));
+
+            //skillpoint <lvl> <point>
+            SkillPoints.Add(new KeyValuePair<int, int>(5, 1));
+            SkillPoints.Add(new KeyValuePair<int, int>(10, 1));
         }
 
         public override void RegisterClass()

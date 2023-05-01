@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using RPGPlugin.Utils;
@@ -29,11 +30,16 @@ namespace RPGPlugin.PointManagementSystem
         public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } =
             new ObservableCollection<KeyValuePair<int, int>>();
 
+        private SkillPointCalculator _skillPointCalculator = new SkillPointCalculator();
+
         public override void init()
         {
             MinerConfig config = (MinerConfig)classConfigs["MinerConfig"];
             if (config != null)
                 ExpRatio = config.ExpRatio;
+                
+                //skillpoint
+                SkillPoints = config.SkillPoints;
             base.init();
         }
 
@@ -88,6 +94,13 @@ namespace RPGPlugin.PointManagementSystem
         {
             if (PlayerManagers[steamID]._PlayerData.ClassInfo["Miner"].Item2 + exp >= ExpToLevelUp(steamID))
             {
+                //skillpoint
+                int level = PlayerManagers[steamID]._PlayerData.ClassInfo["Miner"].Item1 + 1;
+                int skillPoints = _skillPointCalculator.CalculateSkillPoints(level, SkillPoints.ToList());
+
+                // Update SkillPoints in _PlayerData
+                PlayerManagers[steamID]._PlayerData.SkillPoints += skillPoints;
+
                 Tuple<int, double> UpdateData = new Tuple<int, double>(
                     PlayerManagers[steamID]._PlayerData.ClassInfo["Miner"].Item1 + 1,
                     PlayerManagers[steamID]._PlayerData.ClassInfo["Miner"].Item2 + exp - ExpToLevelUp(steamID)
@@ -105,6 +118,10 @@ namespace RPGPlugin.PointManagementSystem
                     MyVisualScriptLogicProvider.SendChatMessageColored("You have leveled up!!!", Color.Green, "Roles",
                         PlayerManagers[steamID]._PlayerData.PlayerID);
                 }
+
+                // Add the skill points message here.
+                string skillPointsMessage = $"You received {skillPoints} skill points for advancing to {level}.";
+                MyVisualScriptLogicProvider.SendChatMessage(skillPointsMessage, "Roles", PlayerManagers[steamID]._PlayerData.PlayerID);
             }
             else
             {
@@ -117,15 +134,15 @@ namespace RPGPlugin.PointManagementSystem
 
             return Task.CompletedTask;
         }
-        
-        
+
+
         /// <inheritdoc />
         public override void Loaded() { }
 
         /// <inheritdoc />
         public override void Unloading() { }
     }
-    
+
     // Here is a working example of how you can patch (suffix) a method in game.
     public static class DrillPatch
     {

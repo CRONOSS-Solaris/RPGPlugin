@@ -31,6 +31,8 @@ namespace RPGPlugin.PointManagementSystem
         public override ObservableCollection<KeyValuePair<int, int>> SkillPoints { get; set; } =
             new ObservableCollection<KeyValuePair<int, int>>();
 
+        private SkillPointCalculator _skillPointCalculator = new SkillPointCalculator();
+
         /// <inheritdoc /> 
         public override void init()
         {
@@ -164,6 +166,13 @@ namespace RPGPlugin.PointManagementSystem
         {
             if (PlayerManagers[steamID]._PlayerData.ClassInfo["Hunter"].Item2 + exp >= ExpToLevelUp(steamID))
             {
+                //skillpoint
+                int level = PlayerManagers[steamID]._PlayerData.ClassInfo["Hunter"].Item1 + 1;
+                int skillPoints = _skillPointCalculator.CalculateSkillPoints(level, SkillPoints.ToList());
+
+                // Update SkillPoints in _PlayerData
+                PlayerManagers[steamID]._PlayerData.SkillPoints += skillPoints;
+
                 Tuple<int, double> UpdateData = new Tuple<int, double>(
                     PlayerManagers[steamID]._PlayerData.ClassInfo["Hunter"].Item1 + 1,
                     PlayerManagers[steamID]._PlayerData.ClassInfo["Hunter"].Item2 + exp - ExpToLevelUp(steamID)
@@ -176,6 +185,10 @@ namespace RPGPlugin.PointManagementSystem
                     string name = MySession.Static.Players.TryGetIdentityNameFromSteamId(PlayerManagers[steamID]._PlayerData.SteamId);
                     ChatManager.SendMessageAsOther("Roles Manager", $"{name} is now a level {PlayerManagers[steamID]._PlayerData.ClassInfo["Hunter"]} Hunter!", Color.ForestGreen);
                 }
+                
+                // Add the skill points message here.
+                string skillPointsMessage = $"You received {skillPoints} skill points for advancing to {level}.";
+                MyVisualScriptLogicProvider.SendChatMessage(skillPointsMessage, "Roles", PlayerManagers[steamID]._PlayerData.PlayerID);
             }
             else
             {

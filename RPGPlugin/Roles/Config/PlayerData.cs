@@ -7,6 +7,7 @@ public class PlayerData
     public long PlayerID { get; set; }
     public Dictionary<string, Tuple<int, double>> ClassInfo = new Dictionary<string, Tuple<int, double>>();  // CLASS, <Level, Exp>
     public string SelectedRole { get; set; }
+    public int SkillPoints { get; set; }
 
     public PlayerData() {}
 

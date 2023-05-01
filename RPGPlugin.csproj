@@ -150,6 +150,7 @@
     <Compile Include="RPGPlugin\Torch GUI\RPGPluginControl.xaml.cs">
       <DependentUpon>RPGPluginControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="RPGPlugin\Utils\CalculateSkillPoints.cs" />
     <Compile Include="RPGPlugin\Utils\FileManager.cs" />
     <Compile Include="RPGPlugin\Utils\RoleManager.cs" />
     <Compile Include="RPGPlugin\Utils\Objects.cs" />

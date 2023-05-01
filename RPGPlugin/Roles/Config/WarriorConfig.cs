@@ -29,8 +29,9 @@ namespace RPGPlugin
             // ExpRatio.Add(new KeyValuePair<string, double>("FriendlySmallBlock", 0   ));
             // ExpRatio.Add(new KeyValuePair<string, double>("FriendlyLargeBlock", 0   ));
 
-            //test skill point system
-            SkillPoints.Add(new KeyValuePair<int, int>(2, 1));
+            //skillpoint <lvl> <point>
+            SkillPoints.Add(new KeyValuePair<int, int>(5, 1));
+            SkillPoints.Add(new KeyValuePair<int, int>(10, 1));
         }
         
         public override void RegisterClass()

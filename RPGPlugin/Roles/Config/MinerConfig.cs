@@ -34,6 +34,10 @@ namespace RPGPlugin
             ExpRatio.Add(new KeyValuePair<string, double>( "Platinum",  0.28   ));
             ExpRatio.Add(new KeyValuePair<string, double>( "Uranium",   0.30   ));
             ExpRatio.Add(new KeyValuePair<string, double>( "Ice",       0.135  ));
+
+            //skillpoint <lvl> <point>
+            SkillPoints.Add(new KeyValuePair<int, int>(  5,  1  ));
+            SkillPoints.Add(new KeyValuePair<int, int>(  10, 1  ));
         }
         
         public override void RegisterClass()
